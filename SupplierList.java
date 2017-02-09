@@ -2,7 +2,7 @@ import java.util.*;
 import java.io.*;
 public class SupplierList implements Serializable {
   private static final long serialVersionUID = 1L;
-  private List suppliers = new LinkedList();
+  private List<Supplier> suppliers = new LinkedList<Supplier>();
   private static SupplierList supplierList;
   
   private SupplierList() {
@@ -20,7 +20,18 @@ public class SupplierList implements Serializable {
     suppliers.add(supplier);
     return true;
   }
-
+  
+  public Supplier search(String supplierID){
+  	for(int i = 0; i < suppliers.size(); i++)
+  	{
+  		if (supplierID.equals(suppliers.get(i).getId()))
+  		{
+  			return suppliers.get(i);
+  		}
+  	}
+  	return null;
+  }
+  
   public Iterator getSuppliers(){
      return suppliers.iterator();
   }

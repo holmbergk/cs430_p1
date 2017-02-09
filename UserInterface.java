@@ -9,12 +9,16 @@ public class UserInterface {
   private static final int ADD_CLIENT = 1;
   private static final int ADD_PRODUCT = 2;
   private static final int ADD_SUPPLIER = 3;
-  private static final int SHOW_CLIENTS = 4;
-  private static final int SHOW_PRODUCTS = 5;
-  private static final int SHOW_SUPPLIERS = 6;
-  private static final int SAVE = 7;
-  private static final int RETRIEVE = 8;
-  private static final int HELP = 9;
+  private static final int ASSIGN_PRODUCT_SUPPLIER = 4;
+  private static final int REMOVE_PRODUCT_SUPPLIER = 5;
+  private static final int SHOW_CLIENTS = 6;
+  private static final int SHOW_PRODUCTS = 7;
+  private static final int SHOW_SUPPLIERS = 8;
+  private static final int QUERY_PRODUCT_BY_GIVEN_SUPP = 9;
+  private static final int QUERY_SUPP_BY_GIVEN_PRODUCT = 10;
+  private static final int SAVE = 11;
+  private static final int RETRIEVE = 12;
+  private static final int HELP = 13;
 
   private UserInterface() {
     if (yesOrNo("Look for saved data and use it?")) {
@@ -95,14 +99,18 @@ public class UserInterface {
   }
 
   public void help() {
-    System.out.println("Enter a number between 0 and 12 as explained below:");
-    System.out.println(EXIT + " to Exit\n");
+    System.out.println("Enter a number between 0 and 13 as explained below:");
+    System.out.println(EXIT + " to Exit");
     System.out.println(ADD_CLIENT + " to add a client");
     System.out.println(ADD_PRODUCT + " to add a product");
     System.out.println(ADD_SUPPLIER + " to add a supplier");
+    System.out.println(ASSIGN_PRODUCT_SUPPLIER + " to assign a product to a supplier");
+    System.out.println(REMOVE_PRODUCT_SUPPLIER + " to remove a product from a supplier");
     System.out.println(SHOW_CLIENTS + " to print clients");
     System.out.println(SHOW_PRODUCTS + " to print products");
     System.out.println(SHOW_SUPPLIERS + " to print suppliers");
+    System.out.println(QUERY_PRODUCT_BY_GIVEN_SUPP + " to query products of a given supplier");
+    System.out.println(QUERY_SUPP_BY_GIVEN_PRODUCT + " to query suppliers of a given product");
     System.out.println(SAVE + " to save data");
     System.out.println(RETRIEVE + " to retrieve");
     System.out.println(HELP + " for help");
@@ -136,13 +144,36 @@ public class UserInterface {
     Product result;
       String name = getToken("Enter product name");
       String upc = getToken("Enter UPC");
-      String id = getToken("Enter id");
-      result = warehouse.addProduct(name, upc, id);
+      result = warehouse.addProduct(name, upc);
       if (result != null) {
         System.out.println(result);
       } else {
         System.out.println("Product could not be added");
       }
+  }
+  
+  public void assignProductToSupplier(){
+	String productID = getToken("Enter Product ID");
+	String supplierID = getToken("Enter Supplier ID");
+    boolean result = warehouse.assignProduct(supplierID, productID);
+    if (result == false) {
+      System.out.println("Could not assign product to supplier");
+      return;
+    }
+    System.out.println("productID " + productID + " has been assigned to supplierID " +
+    					supplierID);
+  }
+	  
+  public void removeProductFromSupplier(){
+    String productID = getToken("Enter Product ID");
+	String supplierID = getToken("Enter Supplier ID");
+    boolean result = warehouse.removeProductFromSupplier(supplierID, productID);
+    if (result == false) {
+      System.out.println("Could not remove product and supplier connection");
+      return;
+    }
+    System.out.println("productID " + productID + " has been removed from supplierID " +
+    					supplierID);
   }
 
   public void showProducts() {
@@ -168,7 +199,36 @@ public class UserInterface {
       System.out.println(supplier.toString());
     }
   }
+  
+  public void queryProdfromAsupplier(){
+	  String supplierID = getToken("Enter supplierID");
+	  Iterator allProducts = warehouse.getSupplierProductList(supplierID);
+	  if (allProducts == null) {
+      System.out.println("Supplier ID " + supplierID + " not valid");
+      return;
+    }
+	  System.out.println("List of products for supplierID " + supplierID);
+      while (allProducts.hasNext()){
+      	  Product product = (Product)(allProducts.next());
+          System.out.println(product.toString());
+      }
+  }
+  
+  public void querySupplierOfAProduct(){
+	  String productID = getToken("Enter productID");
+	  Iterator allSuppliers = warehouse.getProductSupplierList(productID);
+	  if (allSuppliers == null) {
+      System.out.println("Product ID " + productID + " not valid");
+      return;
+    }
 
+	  System.out.println("List of suppliers for productID " + productID);
+      while (allSuppliers.hasNext()){
+    	  Supplier supplier = (Supplier)(allSuppliers.next());
+          System.out.println(supplier.toString());
+      }
+  }
+  
   private void save() {
     if (warehouse.save()) {
       System.out.println(" The warehouse has been successfully saved in the file WarehouseData \n" );
@@ -209,6 +269,14 @@ public class UserInterface {
                                 break; 		
         case SHOW_SUPPLIERS:    showSuppliers();
                                 break;
+        case ASSIGN_PRODUCT_SUPPLIER:  assignProductToSupplier();
+        						break;        
+        case REMOVE_PRODUCT_SUPPLIER:  removeProductFromSupplier();
+            					break;
+        case QUERY_PRODUCT_BY_GIVEN_SUPP: queryProdfromAsupplier();
+        						break;
+        case QUERY_SUPP_BY_GIVEN_PRODUCT:  querySupplierOfAProduct();
+        						break;
         case SAVE:              save();
                                 break;
         case RETRIEVE:          retrieve();

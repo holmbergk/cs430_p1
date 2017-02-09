@@ -3,7 +3,7 @@ import java.lang.*;
 import java.io.*;
 public class Inventory implements Serializable {
   private static final long serialVersionUID = 1L;
-  private List products = new LinkedList();
+  private List<Product> products = new LinkedList<Product>();
   private static Inventory inventory;
 
   private Inventory() {
@@ -21,7 +21,18 @@ public class Inventory implements Serializable {
     products.add(product);
     return true;
   }
-
+  
+  public Product search(String productID){
+  	for(int i = 0; i < products.size(); i++)
+  	{
+  		if (productID.equals(products.get(i).getId()))
+  		{
+  			return products.get(i);
+  		}
+  	}
+  	return null;
+  }
+  
   public Iterator getProducts() {
     return products.iterator();
   }

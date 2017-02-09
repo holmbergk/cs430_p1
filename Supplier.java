@@ -6,8 +6,8 @@ public class Supplier implements Serializable {
   private String address;
   private String phone;
   private String id;
-  private static final String SUPPLIER_STRING = "S";
-  private List productsSupplied = new LinkedList();
+  private static final String SUPPLIER_STRING = "s";
+  private List<Product> productsSupplied = new LinkedList<Product>();
 
   public Supplier (String name, String address, String phone) {
     this.name = name;
@@ -33,7 +33,11 @@ public class Supplier implements Serializable {
       return false;
     }
   }
-
+  
+  public Iterator getProductList() {
+	    return productsSupplied.iterator();
+}
+  
   public String getName() {
     return name;
   }
@@ -67,7 +71,7 @@ public class Supplier implements Serializable {
   }
 
   public String toString() {
-    String string = "Supplier name " + name + " address " + address + " id " + id + "phone " + phone;
+    String string = "Supplier name: " + name + ", address: " + address + ", id: " + id + ", phone: " + phone;
     return string;
   }
 }

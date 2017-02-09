@@ -26,14 +26,16 @@ public class Warehouse implements Serializable {
     if (warehouse == null) {
       ClientIdServer.instance(); // instantiate all singletons
       SupplierIdServer.instance();
+      ProductIdServer.instance();
+      ClientIdServer.instance();
       return (warehouse = new Warehouse());
     } else {
       return warehouse;
     }
   }
 
-  public Product addProduct(String name, String upc, String id) {
-    Product product = new Product(name, upc, id);
+  public Product addProduct(String name, String upc) {
+    Product product = new Product(name, upc);
     if (inventory.insertProduct(product)) {
       return (product);
     }
@@ -55,7 +57,63 @@ public class Warehouse implements Serializable {
     }
     return null;
   }
+  
+  public boolean assignProduct(String supplierID, String productID){
+    boolean addProductResult;
+    boolean addSupplierResult;
+	  Product product = inventory.search(productID);
+	  Supplier supplier = supplierList.search(supplierID);
 
+	  if (product != null && supplier != null) {
+      addProductResult = supplier.addProduct(product);
+      addSupplierResult = product.addSupplier(supplier);
+    } else {
+      return false;
+    }
+
+	  if (addProductResult == true && addSupplierResult == true)
+		  return true;
+	  else
+		  return false;
+  }
+  
+  public boolean removeProductFromSupplier(String supplierID, String productID){
+    boolean removeProductResult;
+    boolean removeSupplierResult;
+	  Product product = inventory.search(productID);
+	  Supplier supplier = supplierList.search(supplierID);
+
+    if (product != null && supplier != null) {
+      removeProductResult = supplier.removeProduct(product);
+      removeSupplierResult = product.removeSupplier(supplier);
+    } else {
+      return false;
+    }
+	  
+	  if (removeProductResult == true && removeSupplierResult == true)
+		  return true;
+	  else
+		  return false;
+  }
+  
+  public Iterator getProductSupplierList(String productID) {
+	  Product product = inventory.search(productID);
+    if (product != null) {
+	   return product.getSupplierList(); 
+    } else {
+      return null;
+    }
+  }
+  
+  public Iterator getSupplierProductList(String supplierID) {
+	  Supplier supplier = supplierList.search(supplierID);
+    if (supplier != null) {
+      return supplier.getProductList();
+    } else {
+      return null;
+    }
+  }
+  
   public Iterator getProducts() {
       return inventory.getProducts();
   }

@@ -6,13 +6,38 @@ public class Product implements Serializable {
   private String name;
   private String id;
   private String upc;
+  private static final String PRODUCT_STRING = "p";
+  private List<Supplier> listOfSuppliers = new LinkedList<Supplier>();
 
-  public Product(String name, String upc, String id) {
+  public Product(String name, String upc) {
     this.name = name;
     this.upc = upc;
-    this.id = id;
+    //this.id = id;
+    id = PRODUCT_STRING + (ProductIdServer.instance()).getId();
+  }
+  
+  public boolean addSupplier(Supplier supplier) {
+    if (!listOfSuppliers.contains(supplier)) {
+    	listOfSuppliers.add(supplier);
+      return true;
+    } else {
+      return false;
+    }
   }
 
+  public boolean removeSupplier(Supplier supplier) {
+    if (listOfSuppliers.contains(supplier)) {
+    	listOfSuppliers.remove(supplier);
+      return true;
+    } else {
+      return false;
+    }
+  }
+  
+  public Iterator getSupplierList() {
+	    return listOfSuppliers.iterator();
+  }
+  
   public String getUPC() {
     return upc;
   }
@@ -22,6 +47,6 @@ public class Product implements Serializable {
   }
 
   public String toString() {
-      return "Product name " + name + " UPC " + upc + " id " + id;
+      return "Product name: " + name + ", UPC: " + upc + ", id: " + id;
   }
 }

@@ -6,7 +6,7 @@ public class Client implements Serializable {
   private String address;
   private String phone;
   private String id;
-  private static final String CLIENT_STRING = "C";
+  private static final String CLIENT_STRING = "c";
   private List transactions = new LinkedList();
 
   public Client (String name, String address, String phone) {
@@ -49,7 +49,7 @@ public class Client implements Serializable {
   }
 
   public String toString() {
-    String string = "Client name " + name + " address " + address + " id " + id + "phone " + phone;
+    String string = "Client name: " + name + ", address: " + address + ", id: " + id + " phone " + phone;
     return string;
   }
 }
