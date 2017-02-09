@@ -1,3 +1,4 @@
+// Author: Jesse Babcock
 import java.io.*;
 public class ProductIdServer implements Serializable {
   private int idCounter;
