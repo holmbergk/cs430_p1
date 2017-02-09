@@ -1,3 +1,4 @@
+// Author: Ji Zhao
 import java.io.*;
 public class SupplierIdServer implements Serializable {
   private int idCounter;
