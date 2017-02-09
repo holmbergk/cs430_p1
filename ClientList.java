@@ -1,3 +1,4 @@
+// Author: Kyle Holmberg
 import java.util.*;
 import java.io.*;
 public class ClientList implements Serializable {
