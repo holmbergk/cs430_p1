@@ -38,7 +38,7 @@ public class Warehouse implements Serializable {
   public Product addProduct(String name, String upc) {
     Product product = new Product(name, upc);
     if (inventory.insertProduct(product)) {
-      return (product);
+      return product;
     }
     return null;
   }
@@ -46,7 +46,7 @@ public class Warehouse implements Serializable {
   public Client addClient(String name, String address, String phone) {
     Client client = new Client(name, address, phone);
     if (clientList.insertClient(client)) {
-      return (client);
+      return client;
     }
     return null;
   }
@@ -54,7 +54,7 @@ public class Warehouse implements Serializable {
   public Supplier addSupplier(String name, String address, String phone) {
     Supplier supplier = new Supplier(name, address, phone);
     if (supplierList.insertSupplier(supplier)) {
-      return (supplier);
+      return supplier;
     }
     return null;
   }
@@ -62,27 +62,29 @@ public class Warehouse implements Serializable {
   public boolean assignProduct(String supplierID, String productID){
     boolean addProductResult;
     boolean addSupplierResult;
-	  Product product = inventory.search(productID);
-	  Supplier supplier = supplierList.search(supplierID);
+	Product product = inventory.search(productID);
+	Supplier supplier = supplierList.search(supplierID);
 
-	  if (product != null && supplier != null) {
-      addProductResult = supplier.addProduct(product);
-      addSupplierResult = product.addSupplier(supplier);
+	if (product != null && supplier != null) {
+	  addProductResult = supplier.addProduct(product);
+	  addSupplierResult = product.addSupplier(supplier);
     } else {
       return false;
     }
 
-	  if (addProductResult == true && addSupplierResult == true)
-		  return true;
-	  else
-		  return false;
+	if (addProductResult == true && addSupplierResult == true) {
+		return true;
+	}
+	else {
+		return false;
+	}
   }
   
   public boolean removeProductFromSupplier(String supplierID, String productID){
     boolean removeProductResult;
     boolean removeSupplierResult;
-	  Product product = inventory.search(productID);
-	  Supplier supplier = supplierList.search(supplierID);
+	Product product = inventory.search(productID);
+	Supplier supplier = supplierList.search(supplierID);
 
     if (product != null && supplier != null) {
       removeProductResult = supplier.removeProduct(product);
@@ -91,14 +93,16 @@ public class Warehouse implements Serializable {
       return false;
     }
 	  
-	  if (removeProductResult == true && removeSupplierResult == true)
-		  return true;
-	  else
-		  return false;
+	if (removeProductResult == true && removeSupplierResult == true) {
+		return true;
+	}
+	else {
+		return false;
+	}
   }
   
   public Iterator getProductSupplierList(String productID) {
-	  Product product = inventory.search(productID);
+	Product product = inventory.search(productID);
     if (product != null) {
 	   return product.getSupplierList(); 
     } else {
@@ -107,7 +111,7 @@ public class Warehouse implements Serializable {
   }
   
   public Iterator getSupplierProductList(String supplierID) {
-	  Supplier supplier = supplierList.search(supplierID);
+	Supplier supplier = supplierList.search(supplierID);
     if (supplier != null) {
       return supplier.getProductList();
     } else {
@@ -116,11 +120,11 @@ public class Warehouse implements Serializable {
   }
   
   public Iterator getProducts() {
-      return inventory.getProducts();
+    return inventory.getProducts();
   }
 
   public Iterator getClients() {
-      return clientList.getClients();
+    return clientList.getClients();
   }
 
   public Iterator getSuppliers() {
