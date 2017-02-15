@@ -2,55 +2,102 @@
 import java.util.*;
 import java.io.*;
 public class Client implements Serializable {
-  private static final long serialVersionUID = 1L;
-  private String name;
-  private String address;
-  private String phone;
-  private String id;
-  private static final String CLIENT_STRING = "c";
-  private List transactions = new LinkedList();
+    private static final long serialVersionUID = 1L;
+    private String name;
+    private String address;
+    private String phone;
+    private String id;
+    private float amountOwed;
+    private static final String CLIENT_STRING = "c";
+    private List<Transaction> transactions = new LinkedList<Transaction>();
+    private List<Order> orders = new LinkedList<Order>();
+    private List<Invoice> invoices = new LinkedList<Invoice>();
 
-  public Client (String name, String address, String phone) {
-    this.name = name;
-    this.address = address;
-    this.phone = phone;
-    id = CLIENT_STRING + (ClientIdServer.instance()).getId();
-  }
+    public Client (String name, String address, String phone) {
+        this.name = name;
+        this.address = address;
+        this.phone = phone;
+        amountOwed = 0.0f;
+        id = CLIENT_STRING + (ClientIdServer.instance()).getId();
+    }
 
-  public String getName() {
-    return name;
-  }
+    public boolean addOrder(Order order) {
+        return orders.add(order);
+    }
 
-  public String getPhone() {
-    return phone;
-  }
+    public boolean addInvoice(Invoice invoice) {
+        if (invoices.add(invoice)) {
+            transactions.add(new Transaction ("Invoice added", invoice.getTotalCost()));
+            return true;
+        }
+        return false;
+    }
 
-  public String getAddress() {
-    return address;
-  }
+    public Iterator getTransactions(Calendar date) {
+        List<Transaction> result = new LinkedList<Transaction>();
+        for (Iterator iterator = transactions.iterator(); iterator.hasNext();) {
+            Transaction transaction = (Transaction) iterator.next();
+            if (transaction.onDate(date)) {
+                result.add(transaction);
+            }
+        }
+        return (result.iterator());
+    }
 
-  public String getId() {
-    return id;
-  }
+    public Iterator getOrders() {
+        return (orders.listIterator());
+    }
 
-  public void setName(String newName) {
-    name = newName;
-  }
+    public String getName() {
+        return name;
+    }
 
-  public void setAddress(String newAddress) {
-    address = newAddress;
-  }
+    public String getPhone() {
+        return phone;
+    }
 
-  public void setPhone(String newPhone) {
-    phone = newPhone;
-  }
+    public String getAddress() {
+        return address;
+    }
 
-  public boolean equals(String id) {
-    return this.id.equals(id);
-  }
+    public String getId() {
+        return id;
+    }
 
-  public String toString() {
-    String string = "Client name: " + name + ", address: " + address + ", id: " + id + " phone " + phone;
-    return string;
-  }
+    public float getAmountOwed() {
+        return amountOwed;
+    }
+
+    public void setName(String newName) {
+        name = newName;
+    }
+
+    public void setAddress(String newAddress) {
+        address = newAddress;
+    }
+
+    public void setPhone(String newPhone) {
+        phone = newPhone;
+    }
+
+    public void increaseAmountOwed(float amt) {
+        amountOwed += amt;
+    }
+
+    public void deductAmount(float amt) {
+        if (amt >= amountOwed) {
+            amountOwed = 0.0f;
+        } else {
+            amountOwed -= amt;
+        }
+    }
+
+    public boolean equals(String id) {
+        return this.id.equals(id);
+    }
+
+    public String toString() {
+        String string = "Client name: " + name + ", address: " + address + ", id: " + id + " phone " + phone;
+        return string;
+    }
 }
