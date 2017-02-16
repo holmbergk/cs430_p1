@@ -104,6 +104,22 @@ public class Warehouse implements Serializable {
 
 		return client.getAmountOwed();
 	}
+	
+	public Iterator getAllUnpaidBalances() {
+		List<String> unpaidBalances = new LinkedList<String>();
+		
+		Iterator allClients = clientList.getClients();
+		
+	    while (allClients.hasNext()){
+	      Client client = (Client)(allClients.next());
+	      
+	      if (client.getAmountOwed() >= 0){
+	    	  unpaidBalances.add("ClientId: " + client.getId() + ", Amount owed: "
+	    	  					+ client.getAmountOwed());
+	      }
+	    }
+	    return unpaidBalances.iterator();
+	}
 
 	public Iterator getProductSupplierList(String productID) {
 		Product product = inventory.search(productID);
