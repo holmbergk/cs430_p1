@@ -2,12 +2,12 @@
 import java.util.*;
 import java.io.*;
 public class InvoiceEntry implements Serializable {
-    private Product product;
+    private String productId;
     private float quantity;
     private float price;
 
-    public InvoiceEntry(Product product, float quantity, float price) {
-        this.product = product;
+    public InvoiceEntry(String productId, float quantity, float price) {
+        this.productId = productId;
         this.quantity = quantity;
         this.price = price;
     }
@@ -20,8 +20,8 @@ public class InvoiceEntry implements Serializable {
         return price;
     }
 
-    public Product getProduct() {
-        return product;
+    public String getProductId() {
+        return productId;
     }
 }
 

@@ -8,7 +8,7 @@ public class Supplier implements Serializable {
   private String phone;
   private String id;
   private static final String SUPPLIER_STRING = "s";
-  private List<Product> productsSupplied = new LinkedList<Product>();
+  private List<String> productsSupplied = new LinkedList<String>();
 
   public Supplier (String name, String address, String phone) {
     this.name = name;
@@ -17,18 +17,18 @@ public class Supplier implements Serializable {
     id = SUPPLIER_STRING + (SupplierIdServer.instance()).getId();
   }
 
-  public boolean addProduct(Product product) {
-    if (!productsSupplied.contains(product)) {
-      productsSupplied.add(product);
+  public boolean addProduct(String productId) {
+    if (!productsSupplied.contains(productId)) {
+      productsSupplied.add(productId);
       return true;
     } else {
       return false;
     }
   }
 
-  public boolean removeProduct(Product product) {
-    if (productsSupplied.contains(product)) {
-      productsSupplied.remove(product);
+  public boolean removeProduct(String productId) {
+    if (productsSupplied.contains(productId)) {
+      productsSupplied.remove(productId);
       return true;
     } else {
       return false;

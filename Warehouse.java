@@ -21,6 +21,7 @@ public class Warehouse implements Serializable {
 			SupplierIdServer.instance();
 			ProductIdServer.instance();
 			InvoiceIdServer.instance();
+			OrderIdServer.instance();
 			return (warehouse = new Warehouse());
 		} else {
 			return warehouse;
@@ -58,18 +59,13 @@ public class Warehouse implements Serializable {
 		Supplier supplier = supplierList.search(supplierID);
 
 		if (product != null && supplier != null) {
-			addProductResult = supplier.addProduct(product);
-			addSupplierResult = product.addSupplier(supplier);
+			addProductResult = supplier.addProduct(productID);
+			addSupplierResult = product.addSupplier(supplierID);
 		} else {
 			return false;
 		}
 
-		if (addProductResult == true && addSupplierResult == true) {
-			return true;
-		}
-		else {
-			return false;
-		}
+		return (addProductResult && addSupplierResult);
 	}
 
 	public boolean removeProductFromSupplier(String supplierID, String productID){
@@ -79,18 +75,13 @@ public class Warehouse implements Serializable {
 		Supplier supplier = supplierList.search(supplierID);
 
 		if (product != null && supplier != null) {
-			removeProductResult = supplier.removeProduct(product);
-			removeSupplierResult = product.removeSupplier(supplier);
+			removeProductResult = supplier.removeProduct(productID);
+			removeSupplierResult = product.removeSupplier(supplierID);
 		} else {
 			return false;
 		}
 
-		if (removeProductResult == true && removeSupplierResult == true) {
-			return true;
-		}
-		else {
-			return false;
-		}
+		return (removeProductResult && removeSupplierResult);
 	}
 
 	public Iterator getProductSupplierList(String productID) {
@@ -132,6 +123,7 @@ public class Warehouse implements Serializable {
 			SupplierIdServer.retrieve(input);
 			ProductIdServer.retrieve(input);
 			InvoiceIdServer.retrieve(input);
+			OrderIdServer.retrieve(input);
 			return warehouse;
 		} catch(IOException ioe) {
 			ioe.printStackTrace();
@@ -151,6 +143,7 @@ public class Warehouse implements Serializable {
 			output.writeObject(SupplierIdServer.instance());
 			output.writeObject(ProductIdServer.instance());
 			output.writeObject(InvoiceIdServer.instance());
+			output.writeObject(OrderIdServer.instance());
 			return true;
 		} catch(IOException ioe) {
 			ioe.printStackTrace();
@@ -185,3 +178,4 @@ public class Warehouse implements Serializable {
 	public String toString() {
 		return inventory + "\n" + clientList + "\n" + supplierList;
 	}
+}
