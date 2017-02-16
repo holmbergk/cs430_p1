@@ -84,6 +84,27 @@ public class Warehouse implements Serializable {
 		return (removeProductResult && removeSupplierResult);
 	}
 
+	public int makePayment(String clientId, float amountReceived) {
+		Client client = clientList.search(clientId);
+		if (client == null) {
+			// CLIENT DOES NOT EXIST
+			return 1;
+		}
+
+		client.deductAmountOwed(amountReceived);
+		return 0;
+	}
+
+	public float getAmountOwed(String clientId) {
+		Client client = clientList.search(clientId);
+		if (client == null) {
+			// CLIENT DOES NOT EXIST
+			return 1;
+		}
+
+		return client.getAmountOwed();
+	}
+
 	public Iterator getProductSupplierList(String productID) {
 		Product product = inventory.search(productID);
 		if (product != null) {

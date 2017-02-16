@@ -4,13 +4,13 @@ import java.io.*;
 public class Invoice implements Serializable {
     private static final String INVOICE_STRING = "i";
     private List<InvoiceEntry> entries = new LinkedList<InvoiceEntry>();
-    private Client client;
+    private String clientId;
     private Calendar date;
     private float totalCost;
     private String id;
 
-    public Invoice(Client client) {
-        this.client = client;
+    public Invoice(String clientId) {
+        this.clientId = clientId;
         date = new GregorianCalendar();
         date.setTimeInMillis(System.currentTimeMillis());
         totalCost = 0.0f;
@@ -29,8 +29,8 @@ public class Invoice implements Serializable {
         return date;
     }
 
-    public Client getClient() {
-        return client;
+    public String getClientId() {
+        return clientId;
     }
 
     public String getId() {

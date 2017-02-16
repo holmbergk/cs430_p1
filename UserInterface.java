@@ -2,6 +2,7 @@
 import java.util.*;
 import java.text.*;
 import java.io.*;
+import java.math.BigDecimal;
 public class UserInterface {
   private static UserInterface userInterface;
   private BufferedReader reader = new BufferedReader(new InputStreamReader(System.in));
@@ -154,8 +155,8 @@ public class UserInterface {
   }
   
   public void assignProductToSupplier(){
-	String productID = getToken("Enter Product ID");
-	String supplierID = getToken("Enter Supplier ID");
+	  String productID = getToken("Enter Product ID");
+	  String supplierID = getToken("Enter Supplier ID");
     boolean result = warehouse.assignProduct(supplierID, productID);
     if (result == false) {
       System.out.println("Could not assign product to supplier");
@@ -167,9 +168,9 @@ public class UserInterface {
 	  
   public void removeProductFromSupplier(){
     String productID = getToken("Enter Product ID");
-	String supplierID = getToken("Enter Supplier ID");
+	  String supplierID = getToken("Enter Supplier ID");
     boolean result = warehouse.removeProductFromSupplier(supplierID, productID);
-    if (result == false) {
+    if (!result) {
       System.out.println("Could not remove product and supplier connection");
       return;
     }
@@ -229,7 +230,53 @@ public class UserInterface {
           System.out.println(supplier.toString());
       }
   }
-  
+
+  public void acceptPayment() {
+    String clientId;
+    String input;
+    float amountReceived;
+    float amountOwed;
+
+    clientId = getToken("Enter client ID:");
+    amountOwed = warehouse.getAmountOwed(clientId);
+
+    if (Float.compare(amountOwed, 0) == 0) {
+      System.out.println("Client does not owe any money");
+      return;
+    }
+
+    do {
+      
+      input = getToken("Enter amount received:");
+      amountReceived = round(Float.parseFloat(input), 2);
+
+      if (Float.compare(amountReceived, 0) < 0) {
+        System.out.println("Please enter an amount greater than 0");
+        continue;
+      } else if (Float.compare(amountReceived, amountOwed) > 0) {
+        System.out.println("Please enter an amount less than or equal to the amount owed; amount owed is [" + amountOwed + "]");
+        continue;
+      }
+      break;
+    } while (true);
+
+    // Change to int for error codes
+    int result = warehouse.makePayment(clientId, amountReceived);
+
+    if (result != 0) {
+      System.out.println("Could not make a payment to client's account");
+      return;
+    }
+
+    System.out.println("Payment successfully made");
+  }
+
+  public float round(float f, int decimalPlace) {
+    BigDecimal bd = new BigDecimal(Float.toString(f));
+    bd = bd.setScale(decimalPlace, BigDecimal.ROUND_HALF_UP);
+    return bd.floatValue();
+  }
+
   private void save() {
     if (warehouse.save()) {
       System.out.println(" The warehouse has been successfully saved in the file WarehouseData \n" );

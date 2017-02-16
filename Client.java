@@ -84,12 +84,8 @@ public class Client implements Serializable {
         amountOwed += amt;
     }
 
-    public void deductAmount(float amt) {
-        if (amt >= amountOwed) {
-            amountOwed = 0.0f;
-        } else {
-            amountOwed -= amt;
-        }
+    public void deductAmountOwed(float amt) {
+        amountOwed -= amt;
     }
 
     public boolean equals(String id) {
