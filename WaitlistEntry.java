@@ -4,15 +4,15 @@ import java.io.*;
 public class WaitlistEntry implements Serializable {
     private String clientId;
     private String orderId;
-    private float quantity;
+    private int quantity;
 
-    public WaitlistEntry(String clientId, String orderId, float quantity) {
+    public WaitlistEntry(String clientId, String orderId, int quantity) {
         this.clientId = clientId;
         this.orderId = orderId;
         this.quantity = quantity;
     }
 
-    public float getQuantity() {
+    public int getQuantity() {
         return quantity;
     }
 

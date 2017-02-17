@@ -8,14 +8,16 @@ public class Product implements Serializable {
     private String id;
     private String upc;
     private int currentStock;
+    private float productCost;
     private static final String PRODUCT_STRING = "p";
     private List<String> listOfSuppliers = new LinkedList<String>();
     private List<WaitlistEntry> waitlist = new LinkedList<WaitlistEntry>();
 
-    public Product(String name, String upc) {
+    public Product(String name, String upc, int currentStock, float productCost) {
         this.name = name;
         this.upc = upc;
-        currentStock = 5; // dummy value for testing
+        this.currentStock = currentStock;
+        this.productCost = productCost;
         id = PRODUCT_STRING + (ProductIdServer.instance()).getId();
     }
 
@@ -36,13 +38,13 @@ public class Product implements Serializable {
             return false;
         }
     }
-
-    public boolean addWaitlistentry(WaitlistEntry entry) {
-        if (!waitlist.contains(entry)) {
-            waitlist.add(entry);
-            return true;
-        }
-        return false;
+    
+    public boolean addWaitlistEntry(String clientId, String orderId, int quantity){
+    	WaitlistEntry entry = new WaitlistEntry(clientId, orderId, quantity);
+    	if(waitlist.add(entry))
+    		return true;
+    	else
+    		return false;    	
     }
 
     public boolean removeWaitlistentry(WaitlistEntry entry) {
@@ -85,8 +87,13 @@ public class Product implements Serializable {
     public int getCurrentStock() {
         return currentStock;
     }
+    
+    public float getProductCost() {
+        return productCost;
+    }
 
     public String toString() {
-        return "Product name: " + name + ", UPC: " + upc + ", id: " + id;
+        return "Product name: " + name + ", UPC: " + upc + ", id: " + id
+        		+ ", current stock: " + currentStock + ", product cost: " + productCost;
     }
 }

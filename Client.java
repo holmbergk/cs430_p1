@@ -25,6 +25,12 @@ public class Client implements Serializable {
         return orders.add(order);
     }
     
+    public String createNewOrder(Product product, int quantity){
+    	Order order = new Order(id, product, quantity);
+    	orders.add(order);
+    	return order.getId();
+    }
+    
     public boolean addRecord(Product product, int quantity, String orderId) {
     	Order order;
     	
@@ -46,12 +52,31 @@ public class Client implements Serializable {
     	return false;
     }
     
-    public String createNewOrder(Product product, int quantity){
-    	Order order = new Order(id, product, quantity);
-    	orders.add(order);
-    	return order.getId();
+    public String createNewInvoice(String productId, int quantity, float cost){
+    	Invoice invoice = new Invoice(id, productId, quantity, cost);
+    	invoices.add(invoice);
+    	return invoice.getId();
     }
-
+    
+    public boolean addInvoiceEntry(String productId, int quantity, float cost) {
+    	for(int i = 0; i < invoices.size(); i++)
+        {
+          if (productId.equals(invoices.get(i).getId()))
+          {
+            Invoice invoice = invoices.get(i);
+            InvoiceEntry entry = new InvoiceEntry(productId, quantity, cost);
+        	boolean success = invoice.addEntry(entry);
+            if(success){
+            	invoices.set(i, invoice);
+            	return true;
+            } else
+            	return false; 
+          }
+        }
+    	
+    	return false;
+    }
+    
     public boolean addInvoice(Invoice invoice) {
         if (invoices.add(invoice)) {
             transactions.add(new Transaction ("Invoice added", invoice.getTotalCost()));

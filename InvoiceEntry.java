@@ -3,16 +3,16 @@ import java.util.*;
 import java.io.*;
 public class InvoiceEntry implements Serializable {
     private String productId;
-    private float quantity;
+    private int quantity;
     private float price;
 
-    public InvoiceEntry(String productId, float quantity, float price) {
+    public InvoiceEntry(String productId, int quantity, float price) {
         this.productId = productId;
         this.quantity = quantity;
         this.price = price;
     }
 
-    public float getQuantity() {
+    public int getQuantity() {
         return quantity;
     }
 

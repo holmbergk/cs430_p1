@@ -21,8 +21,9 @@ public class Order implements Serializable {
 	}
 
 	public boolean addRecord(Record record) {
-		if (!records.contains(record)) {
-			records.add(record);
+		//if (!records.contains(record)) {
+		if (records.add(record)){
+			//records.add(record);
 			return true;
 		} else {
 			return false;

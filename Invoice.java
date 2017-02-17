@@ -9,8 +9,11 @@ public class Invoice implements Serializable {
     private float totalCost;
     private String id;
 
-    public Invoice(String clientId) {
+    public Invoice(String clientId, String productId, int quantity, float cost) {
         this.clientId = clientId;
+        InvoiceEntry entry = new InvoiceEntry(productId, quantity, cost);
+        entries.add(entry);
+        totalCost = quantity * cost;
         date = new GregorianCalendar();
         date.setTimeInMillis(System.currentTimeMillis());
         totalCost = 0.0f;

@@ -28,8 +28,8 @@ public class Warehouse implements Serializable {
 		}
 	}
 
-	public Product addProduct(String name, String upc) {
-		Product product = new Product(name, upc);
+	public Product addProduct(String name, String upc, int amount, float cost) {
+		Product product = new Product(name, upc, amount, cost);
 		if (inventory.insertProduct(product)) {
 			return product;
 		}
@@ -95,23 +95,61 @@ public class Warehouse implements Serializable {
 		return 0;
 	}
 	
-	public String acceptOrder(String clientId, String productId, int quantity, int count, String orderId){
+	public String createOrder(String clientId, String productId, int quantity){
+		String orderId;
+
 		Client client = clientList.search(clientId);
 		Product product = inventory.search(productId);
 		
-		// to create the initial order object
-		if (count == 0){
-			orderId = client.createNewOrder(product, quantity);
-			return orderId;
-		} // add another product to same order
-		else{
-			boolean success = client.addRecord(product, quantity, orderId);
-			if (success == true)
-			{
-				return orderId;
-			} else
-				return orderId = "false";			
-		}			
+		orderId = client.createNewOrder(product, quantity);		
+		processOrder(client, product, quantity, orderId, true);
+		
+		return orderId;
+	}
+	
+	public boolean continueOrder(String clientId, String productId, int quantity, String orderId){
+		boolean success;
+		Client client = clientList.search(clientId);
+		Product product = inventory.search(productId);
+		
+		success = client.addRecord(product, quantity, orderId);
+		processOrder(client, product, quantity, orderId, false);
+		
+		return success;
+	}
+	
+	private void processOrder(Client client, Product product, int quantity,
+								 String orderId, boolean firstProduct){
+		int currentInventory = product.getCurrentStock();
+		String productId = product.getId();
+		String clientId = client.getId();
+		float cost = product.getProductCost();
+		int waitlistQuantity = quantity - currentInventory;
+		
+		// enough in stock
+		if (quantity <= currentInventory && currentInventory > 0){
+			if(firstProduct){//create new invoice
+				client.createNewInvoice(productId, quantity, cost);
+				product.reduceCurrentStock(quantity);
+			}	
+			else{// add invoice entry
+				client.addInvoiceEntry(productId, quantity, cost);
+				product.reduceCurrentStock(quantity);
+			}		
+		} // have stock but not enough to fill order
+		else if (quantity > currentInventory && currentInventory > 0){
+			if(firstProduct){//create new invoice and waitlist
+				client.createNewInvoice(productId, currentInventory, cost);
+				product.addWaitlistEntry(clientId, orderId, waitlistQuantity);
+				product.reduceCurrentStock(currentInventory);
+			}	
+			else{// add invoice and waitlist entries
+				client.addInvoiceEntry(productId, currentInventory, cost);
+				product.addWaitlistEntry(clientId, orderId, waitlistQuantity);
+				product.reduceCurrentStock(currentInventory);
+			}
+		} else // nothing in stock
+			product.addWaitlistEntry(clientId, orderId, quantity);
 	}
 
 	public float getAmountOwed(String clientId) {

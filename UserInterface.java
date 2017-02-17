@@ -155,9 +155,16 @@ public class UserInterface {
 
 	public void addProduct() {
 		Product result;
+		float cost;
+		
 		String name = getToken("Enter product name");
 		String upc = getToken("Enter UPC");
-		result = warehouse.addProduct(name, upc);
+		int amount = getNumber("Enter inventory amount");
+		String costStr = getToken("Enter product cost");
+		
+		cost = round(Float.parseFloat(costStr), 2);
+		result = warehouse.addProduct(name, upc, amount, cost);
+		
 		if (result != null) {
 			System.out.println(result);
 		} else {
@@ -285,8 +292,8 @@ public class UserInterface {
 		String clientId;
 		String productId;
 		String orderId = "";
-		String prevOrderId = "";
-		int quantity, count = 0;
+		int quantity;
+		boolean firstProduct = true, success;
 		
 		clientId = getToken("Enter clientId:");
 		
@@ -294,25 +301,16 @@ public class UserInterface {
 			productId = getToken("Enter productId:");
 			quantity = getNumber("Enter quantity:");
 			
-			// if count = 0 then orderId is returned. If count > 0 then orderId is returned if success else
-			// "false" is returned for orderId. Needs to look up order on each call and add to correct one.
-			orderId = warehouse.acceptOrder(clientId, productId, quantity, count, orderId);
-			
-			// error on adding another product
-			if (orderId.equals("false")){
-				System.out.println("Error adding another order");
-				orderId = prevOrderId; // revert back to prev orderId for display
-				break;
-			}
-			
-			 // save current orderId if error on next iteration
-			prevOrderId = orderId;
+			if (firstProduct)
+				orderId = warehouse.createOrder(clientId, productId, quantity);
+			else
+			    warehouse.continueOrder(clientId, productId, quantity, orderId);
 			
 			// check to go again
 			String input = getToken("Would you like to add another product: yes or no");
 			
 			if (input.equals("yes")){
-				count++;
+				firstProduct = false;
 				continue;
 			} else
 				break;
