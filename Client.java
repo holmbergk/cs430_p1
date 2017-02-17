@@ -55,6 +55,7 @@ public class Client implements Serializable {
     public String createNewInvoice(String productId, int quantity, float cost){
     	Invoice invoice = new Invoice(id, productId, quantity, cost);
     	invoices.add(invoice);
+    	amountOwed = quantity * cost;
     	return invoice.getId();
     }
     
@@ -68,6 +69,7 @@ public class Client implements Serializable {
         	boolean success = invoice.addEntry(entry);
             if(success){
             	invoices.set(i, invoice);
+            	amountOwed += (quantity * cost);
             	return true;
             } else
             	return false; 
