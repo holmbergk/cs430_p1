@@ -1,4 +1,3 @@
-
 // Author: Jesse Babcock
 import java.util.*;
 import java.text.*;
@@ -286,6 +285,7 @@ public class UserInterface {
 		String clientId;
 		String productId;
 		String orderId = "";
+		String prevOrderId = "";
 		int quantity, count = 0;
 		
 		clientId = getToken("Enter clientId:");
@@ -300,9 +300,13 @@ public class UserInterface {
 			
 			// error on adding another product
 			if (orderId.equals("false")){
-				System.out.println("Error adding order");
+				System.out.println("Error adding another order");
+				orderId = prevOrderId; // revert back to prev orderId for display
 				break;
 			}
+			
+			 // save current orderId if error on next iteration
+			prevOrderId = orderId;
 			
 			// check to go again
 			String input = getToken("Would you like to add another product: yes or no");
@@ -315,8 +319,7 @@ public class UserInterface {
 			
 		}while (true);
 		
-		System.out.println("OrderId: " + orderId);
-		
+		System.out.println("Your transaction is complete. OrderId: " + orderId);		
 	}
 
 	public void showUnpaidBalances() {
