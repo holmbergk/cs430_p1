@@ -46,5 +46,17 @@ public class Invoice implements Serializable {
     public Iterator getEntries() {
         return (entries.listIterator());
     }
+    
+    public String toString() {
+		String string = "ClientId: " + id + ", totalCost: " +	totalCost + "\r\n";// + ", date: " + date;
+		string += "Entries:\r\n[";
+		for (Iterator iterator = entries.iterator(); iterator.hasNext();) {
+			InvoiceEntry entry = (InvoiceEntry) iterator.next();
+			string += "ProductId: " + entry.getProductId();
+			string += ", Quantity: " + entry.getQuantity();
+			string += ", Price: " + entry.getPrice() + "]\r\n";
+		}
+		return string;
+    }
 }
 

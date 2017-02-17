@@ -24,9 +24,11 @@ public class UserInterface {
 	private static final int SHOW_UNPAID_BALANCES = 13;
 	private static final int SHOW_WAITLIST_FOR_A_PRODUCT = 14;
 	private static final int SHOW_ORDERS_FOR_A_CLIENT = 15;
-	private static final int SAVE = 16;
-	private static final int RETRIEVE = 17;
-	private static final int HELP = 18;
+	private static final int SHOW_INVOICES_FOR_A_CLIENT = 16;
+	private static final int SHOW_ALL_TRANSACTIONS_FOR_A_CLIENT = 17;
+	private static final int SAVE = 18;
+	private static final int RETRIEVE = 19;
+	private static final int HELP = 20;
 
 	private UserInterface() {
 		if (yesOrNo("Look for saved data and use it?")) {
@@ -124,6 +126,8 @@ public class UserInterface {
 		System.out.println(SHOW_UNPAID_BALANCES + " to show all unpaid balances for clients");
 		System.out.println(SHOW_WAITLIST_FOR_A_PRODUCT + " to show a waitlist for a product");
 		System.out.println(SHOW_ORDERS_FOR_A_CLIENT + " to show orders for a client");
+		System.out.println(SHOW_INVOICES_FOR_A_CLIENT + " to show invoices for a client");
+		System.out.println(SHOW_ALL_TRANSACTIONS_FOR_A_CLIENT + " to show all transactions for a client");
 		System.out.println(SAVE + " to save data");
 		System.out.println(RETRIEVE + " to retrieve");
 		System.out.println(HELP + " for help");
@@ -317,6 +321,7 @@ public class UserInterface {
 			
 		}while (true);
 		
+		warehouse.createTransaction(clientId, orderId);
 		System.out.println("Your transaction is complete. OrderId: " + orderId);		
 	}
 
@@ -346,6 +351,26 @@ public class UserInterface {
 		while (orders.hasNext()) {
 			Order order = (Order) (orders.next());
 			System.out.println(order.toString());
+		}
+	}
+	
+	public void showInvoicesForAClient() {
+		String clientId = getToken("Enter clientId to show their invoices:");
+		Iterator invoices = warehouse.getInvoices(clientId);
+		
+		while (invoices.hasNext()) {
+			Invoice invoice = (Invoice) (invoices.next());
+			System.out.println(invoice.toString());
+		}
+	}
+	
+	public void showAllTransactionsForAClient() {
+		String clientId = getToken("Enter clientId to show their transactions:");
+		Iterator transactions = warehouse.getAllTransactions(clientId);
+		
+		while (transactions.hasNext()) {
+			Transaction transaction = (Transaction) (transactions.next());
+			System.out.println(transaction.toString());
 		}
 	}
 
@@ -427,6 +452,12 @@ public class UserInterface {
 				break;
 			case SHOW_ORDERS_FOR_A_CLIENT:
 				showOrdersForAClient();
+				break;
+			case SHOW_INVOICES_FOR_A_CLIENT:
+				showInvoicesForAClient();
+				break;
+			case SHOW_ALL_TRANSACTIONS_FOR_A_CLIENT:
+				showAllTransactionsForAClient();
 				break;
 			case SAVE:
 				save();

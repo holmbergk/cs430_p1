@@ -8,7 +8,7 @@ public class Transaction implements Serializable {
     private Calendar date;
 
     public Transaction (String description, float amount) {
-        this.description = description;
+        this.description = "OrderId: " + description;
         this.amount = amount;
         date = new GregorianCalendar();
         date.setTimeInMillis(System.currentTimeMillis());

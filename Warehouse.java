@@ -130,10 +130,12 @@ public class Warehouse implements Serializable {
 		if (quantity <= currentInventory && currentInventory > 0){
 			if(firstProduct){//create new invoice
 				client.createNewInvoice(productId, quantity, cost);
+				client.updateTransTotal(cost * quantity);
 				product.reduceCurrentStock(quantity);
 			}	
 			else{// add invoice entry
 				client.addInvoiceEntry(productId, quantity, cost);
+				client.updateTransTotal(cost * quantity);
 				product.reduceCurrentStock(quantity);
 			}		
 		} // have stock but not enough to fill order
@@ -141,15 +143,24 @@ public class Warehouse implements Serializable {
 			if(firstProduct){//create new invoice and waitlist
 				client.createNewInvoice(productId, currentInventory, cost);
 				product.addWaitlistEntry(clientId, orderId, waitlistQuantity);
+				client.updateTransTotal(cost * quantity);
 				product.reduceCurrentStock(currentInventory);
 			}	
 			else{// add invoice and waitlist entries
 				client.addInvoiceEntry(productId, currentInventory, cost);
 				product.addWaitlistEntry(clientId, orderId, waitlistQuantity);
+				client.updateTransTotal(cost * quantity);
 				product.reduceCurrentStock(currentInventory);
 			}
-		} else // nothing in stock
+		} else { // nothing in stock
 			product.addWaitlistEntry(clientId, orderId, quantity);
+			client.updateTransTotal(cost * quantity);
+		}
+	}
+	
+	public void createTransaction(String clientId, String orderId){
+		Client client = clientList.search(clientId);
+		client.createTransaction(orderId);
 	}
 
 	public float getAmountOwed(String clientId) {
@@ -191,6 +202,24 @@ public class Warehouse implements Serializable {
 		Client client = clientList.search(clientId);
 		if (client != null) {
 			return client.getOrders(); 
+		} else {
+			return null;
+		}
+	}
+	
+	public Iterator getAllTransactions(String clientId) {
+		Client client = clientList.search(clientId);
+		if (client != null) {
+			return client.getAllTransactions(); 
+		} else {
+			return null;
+		}
+	}
+	
+	public Iterator getInvoices(String clientId) {
+		Client client = clientList.search(clientId);
+		if (client != null) {
+			return client.getInvoices(); 
 		} else {
 			return null;
 		}

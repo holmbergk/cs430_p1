@@ -8,6 +8,7 @@ public class Client implements Serializable {
     private String phone;
     private String id;
     private float amountOwed;
+    private float currentTransCost;
     private static final String CLIENT_STRING = "c";
     private List<Transaction> transactions = new LinkedList<Transaction>();
     private List<Order> orders = new LinkedList<Order>();
@@ -18,6 +19,7 @@ public class Client implements Serializable {
         this.address = address;
         this.phone = phone;
         amountOwed = 0.0f;
+        currentTransCost = 0.0f;
         id = CLIENT_STRING + (ClientIdServer.instance()).getId();
     }
 
@@ -86,6 +88,24 @@ public class Client implements Serializable {
         }
         return false;
     }
+    
+    public boolean createTransaction(String orderId){
+    	Transaction transaction = new Transaction(orderId, currentTransCost);
+    	if (transactions.add(transaction)){
+    		currentTransCost = 0.0f;
+    		return true;
+    	}    		
+    	else
+    		return false;
+    }
+    
+    public void updateTransTotal(float total){
+    	currentTransCost += total;
+    }
+    
+    public Iterator getAllTransactions(){
+    	return transactions.iterator();
+    }
 
     public Iterator getTransactions(Calendar date) {
         List<Transaction> result = new LinkedList<Transaction>();
@@ -100,6 +120,10 @@ public class Client implements Serializable {
 
     public Iterator getOrders() {
         return orders.iterator();
+    }
+    
+    public Iterator getInvoices() {
+        return invoices.iterator();
     }
 
     public String getName() {
