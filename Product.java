@@ -54,6 +54,10 @@ public class Product implements Serializable {
     public Iterator getSupplierList() {
         return listOfSuppliers.iterator();
     }
+    
+    public Iterator getWaitList() {
+        return waitlist.iterator();
+    }
 
     public String getUPC() {
         return upc;

@@ -22,9 +22,10 @@ public class UserInterface {
 	private static final int QUERY_SUPP_BY_GIVEN_PRODUCT = 10;
 	private static final int ACCEPT_PAYMENT = 11;
 	private static final int SHOW_UNPAID_BALANCES = 12;
-	private static final int SAVE = 13;
-	private static final int RETRIEVE = 14;
-	private static final int HELP = 15;
+	private static final int SHOW_WAITLIST_FOR_A_PRODUCT = 13;
+	private static final int SAVE = 14;
+	private static final int RETRIEVE = 15;
+	private static final int HELP = 16;
 
 	private UserInterface() {
 		if (yesOrNo("Look for saved data and use it?")) {
@@ -119,6 +120,7 @@ public class UserInterface {
 		System.out.println(QUERY_SUPP_BY_GIVEN_PRODUCT + " to query suppliers of a given product");
 		System.out.println(ACCEPT_PAYMENT + " to accept a payment for a client");
 		System.out.println(SHOW_UNPAID_BALANCES + " to show all unpaid balances for clients");
+		System.out.println(SHOW_WAITLIST_FOR_A_PRODUCT + " to show a waitlist for a product");
 		System.out.println(SAVE + " to save data");
 		System.out.println(RETRIEVE + " to retrieve");
 		System.out.println(HELP + " for help");
@@ -278,9 +280,20 @@ public class UserInterface {
 
 	public void showUnpaidBalances() {
 		Iterator unpaidBalances = warehouse.getAllUnpaidBalances();
+		
 		while (unpaidBalances.hasNext()) {
 			String clientBalance = (String) (unpaidBalances.next());
 			System.out.println(clientBalance.toString() + "\r\n");
+		}
+	}
+	
+	public void showWaitlistForAProduct() {
+		String productId = getToken("Enter productId to show waitlist:");
+		Iterator waitlist = warehouse.getWaitlist(productId);
+		
+		while (waitlist.hasNext()) {
+			WaitlistEntry waitlistEntry = (WaitlistEntry) (waitlist.next());			
+			System.out.println(waitlistEntry.toString());
 		}
 	}
 
@@ -353,6 +366,9 @@ public class UserInterface {
 				break;
 			case SHOW_UNPAID_BALANCES:
 				showUnpaidBalances();
+				break;
+			case SHOW_WAITLIST_FOR_A_PRODUCT:
+				showWaitlistForAProduct();
 				break;
 			case SAVE:
 				save();

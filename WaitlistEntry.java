@@ -23,5 +23,9 @@ public class WaitlistEntry implements Serializable {
     public String getOrderId() {
         return orderId;
     }
+    
+    public String toString() {
+        return "clientId: " + clientId + ", OrderId: " + orderId + ", quantity: " + quantity;
+    }
 }
 

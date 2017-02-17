@@ -120,6 +120,15 @@ public class Warehouse implements Serializable {
 	    }
 	    return unpaidBalances.iterator();
 	}
+	
+	public Iterator getWaitlist(String productID) {
+		Product product = inventory.search(productID);
+		if (product != null) {
+			return product.getWaitList(); 
+		} else {
+			return null;
+		}
+	}
 
 	public Iterator getProductSupplierList(String productID) {
 		Product product = inventory.search(productID);
