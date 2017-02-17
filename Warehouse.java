@@ -94,6 +94,25 @@ public class Warehouse implements Serializable {
 		client.deductAmountOwed(amountReceived);
 		return 0;
 	}
+	
+	public String acceptOrder(String clientId, String productId, int quantity, int count, String orderId){
+		Client client = clientList.search(clientId);
+		Product product = inventory.search(productId);
+		
+		// to create the initial order object
+		if (count == 0){
+			orderId = client.createNewOrder(product, quantity);
+			return orderId;
+		} // add another product to same order
+		else{
+			boolean success = client.addRecord(product, quantity, orderId);
+			if (success == true)
+			{
+				return orderId;
+			} else
+				return orderId = "false";			
+		}			
+	}
 
 	public float getAmountOwed(String clientId) {
 		Client client = clientList.search(clientId);
@@ -125,6 +144,15 @@ public class Warehouse implements Serializable {
 		Product product = inventory.search(productID);
 		if (product != null) {
 			return product.getWaitList(); 
+		} else {
+			return null;
+		}
+	}
+	
+	public Iterator getOrders(String clientId) {
+		Client client = clientList.search(clientId);
+		if (client != null) {
+			return client.getOrders(); 
 		} else {
 			return null;
 		}

@@ -11,8 +11,10 @@ public class Order implements Serializable {
 	private Calendar date;
 	private List<Record> records = new LinkedList<Record>();
 
-	public Order(String clientId) {
+	public Order(String clientId, Product product, int quantity) {
 		this.clientId = clientId;
+		Record record = new Record(product, quantity);
+		records.add(record);
 		date = new GregorianCalendar();
 		date.setTimeInMillis(System.currentTimeMillis());
 		id = ORDER_STRING + (OrderIdServer.instance()).getId();
@@ -57,12 +59,12 @@ public class Order implements Serializable {
 	}
 
 	public String toString() {
-		String string = "OrderId: " + id + ", clientId: " +	clientId + ", date: " + date;
-		string += " Records: [";
+		String string = "OrderId: " + id + ", clientId: " +	clientId + "\r\n";// + ", date: " + date;
+		string += "Records:\r\n[";
 		for (Iterator iterator = records.iterator(); iterator.hasNext();) {
 			Record record = (Record) iterator.next();
 			string += "ProductId: " + record.getProduct().getId();
-			string += "Quantity: " + record.getQuantity();
+			string += ", Quantity: " + record.getQuantity() + "]\r\n";
 		}
 		return string;
 	}

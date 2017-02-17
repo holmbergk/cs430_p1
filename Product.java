@@ -7,6 +7,7 @@ public class Product implements Serializable {
     private String name;
     private String id;
     private String upc;
+    private int currentStock;
     private static final String PRODUCT_STRING = "p";
     private List<String> listOfSuppliers = new LinkedList<String>();
     private List<WaitlistEntry> waitlist = new LinkedList<WaitlistEntry>();
@@ -14,6 +15,7 @@ public class Product implements Serializable {
     public Product(String name, String upc) {
         this.name = name;
         this.upc = upc;
+        currentStock = 5; // dummy value for testing
         id = PRODUCT_STRING + (ProductIdServer.instance()).getId();
     }
 
@@ -25,7 +27,7 @@ public class Product implements Serializable {
             return false;
         }
     }
-
+    
     public boolean removeSupplier(String supplierId) {
         if (listOfSuppliers.contains(supplierId)) {
             listOfSuppliers.remove(supplierId);
@@ -50,7 +52,20 @@ public class Product implements Serializable {
         }
         return false;
     }
-
+    
+    public void addToCurrentStock(int amount) {
+    	currentStock += amount;
+    }
+    
+    public boolean reduceCurrentStock(int amount){
+    	if (currentStock < 0 || amount > currentStock){
+    		return false;
+    	} else {
+    		currentStock -= amount;
+    		return true;
+    	}
+    }
+    
     public Iterator getSupplierList() {
         return listOfSuppliers.iterator();
     }
@@ -65,6 +80,10 @@ public class Product implements Serializable {
 
     public String getId() {
         return id;
+    }
+    
+    public int getCurrentStock() {
+        return currentStock;
     }
 
     public String toString() {

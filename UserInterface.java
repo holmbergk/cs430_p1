@@ -21,11 +21,13 @@ public class UserInterface {
 	private static final int QUERY_PRODUCT_BY_GIVEN_SUPP = 9;
 	private static final int QUERY_SUPP_BY_GIVEN_PRODUCT = 10;
 	private static final int ACCEPT_PAYMENT = 11;
-	private static final int SHOW_UNPAID_BALANCES = 12;
-	private static final int SHOW_WAITLIST_FOR_A_PRODUCT = 13;
-	private static final int SAVE = 14;
-	private static final int RETRIEVE = 15;
-	private static final int HELP = 16;
+	private static final int ACCEPT_ORDER = 12;
+	private static final int SHOW_UNPAID_BALANCES = 13;
+	private static final int SHOW_WAITLIST_FOR_A_PRODUCT = 14;
+	private static final int SHOW_ORDERS_FOR_A_CLIENT = 15;
+	private static final int SAVE = 16;
+	private static final int RETRIEVE = 17;
+	private static final int HELP = 18;
 
 	private UserInterface() {
 		if (yesOrNo("Look for saved data and use it?")) {
@@ -119,8 +121,10 @@ public class UserInterface {
 		System.out.println(QUERY_PRODUCT_BY_GIVEN_SUPP + " to query products of a given supplier");
 		System.out.println(QUERY_SUPP_BY_GIVEN_PRODUCT + " to query suppliers of a given product");
 		System.out.println(ACCEPT_PAYMENT + " to accept a payment for a client");
+		System.out.println(ACCEPT_ORDER + " to start an order");
 		System.out.println(SHOW_UNPAID_BALANCES + " to show all unpaid balances for clients");
 		System.out.println(SHOW_WAITLIST_FOR_A_PRODUCT + " to show a waitlist for a product");
+		System.out.println(SHOW_ORDERS_FOR_A_CLIENT + " to show orders for a client");
 		System.out.println(SAVE + " to save data");
 		System.out.println(RETRIEVE + " to retrieve");
 		System.out.println(HELP + " for help");
@@ -277,13 +281,50 @@ public class UserInterface {
 
 		System.out.println("Payment successfully made");
 	}
+	
+	public void acceptOrder(){
+		String clientId;
+		String productId;
+		String orderId = "";
+		int quantity, count = 0;
+		
+		clientId = getToken("Enter clientId:");
+		
+		do{
+			productId = getToken("Enter productId:");
+			quantity = getNumber("Enter quantity:");
+			
+			// if count = 0 then orderId is returned. If count > 0 then orderId is returned if success else
+			// "false" is returned for orderId. Needs to look up order on each call and add to correct one.
+			orderId = warehouse.acceptOrder(clientId, productId, quantity, count, orderId);
+			
+			// error on adding another product
+			if (orderId.equals("false")){
+				System.out.println("Error adding order");
+				break;
+			}
+			
+			// check to go again
+			String input = getToken("Would you like to add another product: yes or no");
+			
+			if (input.equals("yes")){
+				count++;
+				continue;
+			} else
+				break;
+			
+		}while (true);
+		
+		System.out.println("OrderId: " + orderId);
+		
+	}
 
 	public void showUnpaidBalances() {
 		Iterator unpaidBalances = warehouse.getAllUnpaidBalances();
 		
 		while (unpaidBalances.hasNext()) {
 			String clientBalance = (String) (unpaidBalances.next());
-			System.out.println(clientBalance.toString() + "\r\n");
+			System.out.println(clientBalance.toString());
 		}
 	}
 	
@@ -294,6 +335,16 @@ public class UserInterface {
 		while (waitlist.hasNext()) {
 			WaitlistEntry waitlistEntry = (WaitlistEntry) (waitlist.next());			
 			System.out.println(waitlistEntry.toString());
+		}
+	}
+	
+	public void showOrdersForAClient() {
+		String clientId = getToken("Enter clientId to show their orders:");
+		Iterator orders = warehouse.getOrders(clientId);
+		
+		while (orders.hasNext()) {
+			Order order = (Order) (orders.next());
+			System.out.println(order.toString());
 		}
 	}
 
@@ -364,11 +415,17 @@ public class UserInterface {
 			case ACCEPT_PAYMENT:
 				acceptPayment();
 				break;
+			case ACCEPT_ORDER:
+				acceptOrder();
+				break;
 			case SHOW_UNPAID_BALANCES:
 				showUnpaidBalances();
 				break;
 			case SHOW_WAITLIST_FOR_A_PRODUCT:
 				showWaitlistForAProduct();
+				break;
+			case SHOW_ORDERS_FOR_A_CLIENT:
+				showOrdersForAClient();
 				break;
 			case SAVE:
 				save();

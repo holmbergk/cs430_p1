@@ -24,6 +24,33 @@ public class Client implements Serializable {
     public boolean addOrder(Order order) {
         return orders.add(order);
     }
+    
+    public boolean addRecord(Product product, int quantity, String orderId) {
+    	Order order;
+    	
+    	for(int i = 0; i < orders.size(); i++)
+        {
+          if (orderId.equals(orders.get(i).getId()))
+          {
+            order = orders.get(i);
+            Record record = new Record(product, quantity);
+            boolean success = order.addRecord(record);
+            if(success){
+            	orders.set(i, order);
+            	return true;
+            } else
+            	return false;       
+          }
+        }
+    	
+    	return false;
+    }
+    
+    public String createNewOrder(Product product, int quantity){
+    	Order order = new Order(id, product, quantity);
+    	orders.add(order);
+    	return order.getId();
+    }
 
     public boolean addInvoice(Invoice invoice) {
         if (invoices.add(invoice)) {
@@ -45,7 +72,7 @@ public class Client implements Serializable {
     }
 
     public Iterator getOrders() {
-        return (orders.listIterator());
+        return orders.iterator();
     }
 
     public String getName() {
@@ -93,7 +120,8 @@ public class Client implements Serializable {
     }
 
     public String toString() {
-        String string = "Client name: " + name + ", address: " + address + ", id: " + id + " phone " + phone;
+        String string = "Client name: " + name + ", address: " + address + ", phone: "
+        				 + phone + ", id: " + id;
         return string;
     }
 }
