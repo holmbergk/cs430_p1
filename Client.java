@@ -20,33 +20,28 @@ public class Client implements Serializable {
         amountOwed = 0.0f;
         id = CLIENT_STRING + (ClientIdServer.instance()).getId();
     }
-
-    public boolean addOrder(Order order) {
-        return orders.add(order);
-    }
     
     public boolean addRecord(Product product, int quantity, String orderId) {
     	Order order;
     	
-    	for(int i = 0; i < orders.size(); i++)
-        {
-          if (orderId.equals(orders.get(i).getId()))
-          {
+    	for(int i = 0; i < orders.size(); i++) {
+          if (orderId.equals(orders.get(i).getId())) {
             order = orders.get(i);
             Record record = new Record(product, quantity);
             boolean success = order.addRecord(record);
-            if(success){
+            if (success) {
             	orders.set(i, order);
             	return true;
-            } else
+            } else {
             	return false;       
+            }
           }
         }
     	
     	return false;
     }
     
-    public String createNewOrder(Product product, int quantity){
+    public String createNewOrder(Product product, int quantity) {
     	Order order = new Order(id, product, quantity);
     	orders.add(order);
     	return order.getId();

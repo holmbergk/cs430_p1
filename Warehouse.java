@@ -84,41 +84,41 @@ public class Warehouse implements Serializable {
 		return (removeProductResult && removeSupplierResult);
 	}
 
-	public int makePayment(String clientId, float amountReceived) {
+	public boolean makePayment(String clientId, float amountReceived) {
 		Client client = clientList.search(clientId);
 		if (client == null) {
-			// CLIENT DOES NOT EXIST
-			return 1;
+			return false;
 		}
 
 		client.deductAmountOwed(amountReceived);
-		return 0;
+		return true;
 	}
 	
 	public String acceptOrder(String clientId, String productId, int quantity, int count, String orderId){
 		Client client = clientList.search(clientId);
 		Product product = inventory.search(productId);
 		
+		if (client == null || product == null) {
+			return "false";
+		}
 		// to create the initial order object
-		if (count == 0){
+		if (count == 0) {
 			orderId = client.createNewOrder(product, quantity);
 			return orderId;
-		} // add another product to same order
-		else{
+		} else { // add another product to same order
 			boolean success = client.addRecord(product, quantity, orderId);
-			if (success == true)
-			{
+			if (success) {
 				return orderId;
-			} else
+			} else {
 				return orderId = "false";			
+			}
 		}			
 	}
 
 	public float getAmountOwed(String clientId) {
 		Client client = clientList.search(clientId);
 		if (client == null) {
-			// CLIENT DOES NOT EXIST
-			return 1;
+			return -1.0f;
 		}
 
 		return client.getAmountOwed();
@@ -129,10 +129,10 @@ public class Warehouse implements Serializable {
 		
 		Iterator allClients = clientList.getClients();
 		
-	    while (allClients.hasNext()){
+	    while (allClients.hasNext()) {
 	      Client client = (Client)(allClients.next());
 	      
-	      if (client.getAmountOwed() >= 0){
+	      if (client.getAmountOwed() >= 0) {
 	    	  unpaidBalances.add("ClientId: " + client.getId() + ", Amount owed: "
 	    	  					+ client.getAmountOwed());
 	      }
