@@ -310,7 +310,6 @@ public class UserInterface {
 			else
 			    warehouse.continueOrder(clientId, productId, quantity, orderId);
 			
-			// check to go again
 			String input = getToken("Would you like to add another product: yes or no");
 			
 			if (input.equals("yes")){

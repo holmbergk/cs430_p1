@@ -21,9 +21,8 @@ public class Order implements Serializable {
 	}
 
 	public boolean addRecord(Record record) {
-		//if (!records.contains(record)) {
-		if (records.add(record)){
-			//records.add(record);
+		if (!records.contains(record)) {
+			records.add(record);
 			return true;
 		} else {
 			return false;
@@ -61,11 +60,11 @@ public class Order implements Serializable {
 
 	public String toString() {
 		String string = "OrderId: " + id + ", clientId: " +	clientId + "\r\n";// + ", date: " + date;
-		string += "Records:\r\n[";
+		string += "Records:\r\n";
 		for (Iterator iterator = records.iterator(); iterator.hasNext();) {
 			Record record = (Record) iterator.next();
 			string += "ProductId: " + record.getProduct().getId();
-			string += ", Quantity: " + record.getQuantity() + "]\r\n";
+			string += ", Quantity: " + record.getQuantity() + "\r\n";
 		}
 		return string;
 	}

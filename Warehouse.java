@@ -7,6 +7,7 @@ public class Warehouse implements Serializable {
 	private Inventory inventory;
 	private ClientList clientList;
 	private SupplierList supplierList;
+	private String invoiceId; // need to add to current invoice
 	private static Warehouse warehouse;
 
 	private Warehouse() {
@@ -129,25 +130,25 @@ public class Warehouse implements Serializable {
 		// enough in stock
 		if (quantity <= currentInventory && currentInventory > 0){
 			if(firstProduct){//create new invoice
-				client.createNewInvoice(productId, quantity, cost);
+				invoiceId = client.createNewInvoice(productId, quantity, cost);
 				client.updateTransTotal(cost * quantity);
 				product.reduceCurrentStock(quantity);
 			}	
 			else{// add invoice entry
-				client.addInvoiceEntry(productId, quantity, cost);
+				client.addInvoiceEntry(productId, quantity, cost, invoiceId);
 				client.updateTransTotal(cost * quantity);
 				product.reduceCurrentStock(quantity);
 			}		
 		} // have stock but not enough to fill order
 		else if (quantity > currentInventory && currentInventory > 0){
 			if(firstProduct){//create new invoice and waitlist
-				client.createNewInvoice(productId, currentInventory, cost);
+				invoiceId = client.createNewInvoice(productId, currentInventory, cost);
 				product.addWaitlistEntry(clientId, orderId, waitlistQuantity);
 				client.updateTransTotal(cost * quantity);
 				product.reduceCurrentStock(currentInventory);
 			}	
 			else{// add invoice and waitlist entries
-				client.addInvoiceEntry(productId, currentInventory, cost);
+				client.addInvoiceEntry(productId, currentInventory, cost, invoiceId);
 				product.addWaitlistEntry(clientId, orderId, waitlistQuantity);
 				client.updateTransTotal(cost * quantity);
 				product.reduceCurrentStock(currentInventory);

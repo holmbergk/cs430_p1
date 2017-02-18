@@ -16,18 +16,18 @@ public class Invoice implements Serializable {
         totalCost = quantity * cost;
         date = new GregorianCalendar();
         date.setTimeInMillis(System.currentTimeMillis());
-        totalCost = 0.0f;
         id = INVOICE_STRING + (InvoiceIdServer.instance()).getId();
     }
 
     public boolean addEntry(InvoiceEntry entry) {
-        if (entries.add(entry)) {
+    	if(!entries.contains(entry)){
+    		entries.add(entry);
             totalCost += (entry.getPrice() * entry.getQuantity());
-            return true;
+            return true;            
         }
         return false;
     }
-
+    
     public Calendar getDate() {
         return date;
     }
@@ -48,13 +48,13 @@ public class Invoice implements Serializable {
     }
     
     public String toString() {
-		String string = "ClientId: " + id + ", totalCost: " +	totalCost + "\r\n";// + ", date: " + date;
-		string += "Entries:\r\n[";
+		String string = "ClientId: " + id + ", total cost: " +	totalCost + "\r\n";// + ", date: " + date;
+		string += "Entries:\r\n";
 		for (Iterator iterator = entries.iterator(); iterator.hasNext();) {
 			InvoiceEntry entry = (InvoiceEntry) iterator.next();
 			string += "ProductId: " + entry.getProductId();
 			string += ", Quantity: " + entry.getQuantity();
-			string += ", Price: " + entry.getPrice() + "]\r\n";
+			string += ", Price: " + entry.getPrice() + "\r\n";
 		}
 		return string;
     }
