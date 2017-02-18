@@ -263,6 +263,9 @@ public class UserInterface {
 		if (Float.compare(amountOwed, 0) == 0) {
 			System.out.println("Client does not owe any money");
 			return;
+		} else if (Float.compare(amountOwed, -1.0f) == 0) {
+			System.out.println("Client does not exist");
+			return;
 		}
 
 		do {
@@ -281,10 +284,9 @@ public class UserInterface {
 			break;
 		} while (true);
 
-		// Change to int for error codes
-		int result = warehouse.makePayment(clientId, amountReceived);
+		boolean result = warehouse.makePayment(clientId, amountReceived);
 
-		if (result != 0) {
+		if (!result) {
 			System.out.println("Could not make a payment to client's account");
 			return;
 		}

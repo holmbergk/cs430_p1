@@ -85,22 +85,25 @@ public class Warehouse implements Serializable {
 		return (removeProductResult && removeSupplierResult);
 	}
 
-	public int makePayment(String clientId, float amountReceived) {
+	public boolean makePayment(String clientId, float amountReceived) {
 		Client client = clientList.search(clientId);
 		if (client == null) {
-			// CLIENT DOES NOT EXIST
-			return 1;
+			return false;
 		}
 
 		client.deductAmountOwed(amountReceived);
-		return 0;
+		return true;
 	}
 	
-	public String createOrder(String clientId, String productId, int quantity){
+	public String createOrder(String clientId, String productId, int quantity) {
 		String orderId;
 
 		Client client = clientList.search(clientId);
 		Product product = inventory.search(productId);
+
+		if (client == null || product == null) {
+			return "false";
+		}
 		
 		orderId = client.createNewOrder(product, quantity);		
 		processOrder(client, product, quantity, orderId, true);
@@ -108,10 +111,14 @@ public class Warehouse implements Serializable {
 		return orderId;
 	}
 	
-	public boolean continueOrder(String clientId, String productId, int quantity, String orderId){
+	public boolean continueOrder(String clientId, String productId, int quantity, String orderId) {
 		boolean success;
 		Client client = clientList.search(clientId);
 		Product product = inventory.search(productId);
+
+		if (client == null || product == null) {
+			return false;
+		}
 		
 		success = client.addRecord(product, quantity, orderId);
 		processOrder(client, product, quantity, orderId, false);
@@ -120,7 +127,7 @@ public class Warehouse implements Serializable {
 	}
 	
 	private void processOrder(Client client, Product product, int quantity,
-								 String orderId, boolean firstProduct){
+								 String orderId, boolean firstProduct) {
 		int currentInventory = product.getCurrentStock();
 		String productId = product.getId();
 		String clientId = client.getId();
@@ -128,26 +135,23 @@ public class Warehouse implements Serializable {
 		int waitlistQuantity = quantity - currentInventory;
 		
 		// enough in stock
-		if (quantity <= currentInventory && currentInventory > 0){
-			if(firstProduct){//create new invoice
+		if (quantity <= currentInventory && currentInventory > 0) {
+			if (firstProduct) { //create new invoice
 				invoiceId = client.createNewInvoice(productId, quantity, cost);
 				client.updateTransTotal(cost * quantity);
 				product.reduceCurrentStock(quantity);
-			}	
-			else{// add invoice entry
+			} else { // add invoice entry
 				client.addInvoiceEntry(productId, quantity, cost, invoiceId);
 				client.updateTransTotal(cost * quantity);
 				product.reduceCurrentStock(quantity);
 			}		
-		} // have stock but not enough to fill order
-		else if (quantity > currentInventory && currentInventory > 0){
-			if(firstProduct){//create new invoice and waitlist
+		} else if (quantity > currentInventory && currentInventory > 0) { // have stock but not enough to fill order
+			if (firstProduct) {//create new invoice and waitlist
 				invoiceId = client.createNewInvoice(productId, currentInventory, cost);
 				product.addWaitlistEntry(clientId, orderId, waitlistQuantity);
 				client.updateTransTotal(cost * quantity);
 				product.reduceCurrentStock(currentInventory);
-			}	
-			else{// add invoice and waitlist entries
+			} else {// add invoice and waitlist entries
 				client.addInvoiceEntry(productId, currentInventory, cost, invoiceId);
 				product.addWaitlistEntry(clientId, orderId, waitlistQuantity);
 				client.updateTransTotal(cost * quantity);
@@ -159,16 +163,18 @@ public class Warehouse implements Serializable {
 		}
 	}
 	
-	public void createTransaction(String clientId, String orderId){
+	public boolean createTransaction(String clientId, String orderId){
 		Client client = clientList.search(clientId);
-		client.createTransaction(orderId);
+		if (client == null) {
+			return false;
+		}
+		return client.createTransaction(orderId);
 	}
 
 	public float getAmountOwed(String clientId) {
 		Client client = clientList.search(clientId);
 		if (client == null) {
-			// CLIENT DOES NOT EXIST
-			return 1;
+			return -1.0f;
 		}
 
 		return client.getAmountOwed();
@@ -179,10 +185,10 @@ public class Warehouse implements Serializable {
 		
 		Iterator allClients = clientList.getClients();
 		
-	    while (allClients.hasNext()){
+	    while (allClients.hasNext()) {
 	      Client client = (Client)(allClients.next());
 	      
-	      if (client.getAmountOwed() >= 0){
+	      if (client.getAmountOwed() >= 0) {
 	    	  unpaidBalances.add("ClientId: " + client.getId() + ", Amount owed: "
 	    	  					+ client.getAmountOwed());
 	      }

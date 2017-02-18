@@ -48,7 +48,7 @@ public class Invoice implements Serializable {
     }
     
     public String toString() {
-		String string = "ClientId: " + id + ", total cost: " +	totalCost + "\r\n";// + ", date: " + date;
+		String string = "ClientId: " + id + ", total cost: " +	totalCost + "\r\n";
 		string += "Entries:\r\n";
 		for (Iterator iterator = entries.iterator(); iterator.hasNext();) {
 			InvoiceEntry entry = (InvoiceEntry) iterator.next();

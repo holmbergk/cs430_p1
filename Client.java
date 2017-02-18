@@ -3,13 +3,13 @@ import java.util.*;
 import java.io.*;
 public class Client implements Serializable {
     private static final long serialVersionUID = 1L;
+    private static final String CLIENT_STRING = "c";
     private String name;
     private String address;
     private String phone;
     private String id;
     private float amountOwed;
     private float currentTransCost;
-    private static final String CLIENT_STRING = "c";
     private List<Transaction> transactions = new LinkedList<Transaction>();
     private List<Order> orders = new LinkedList<Order>();
     private List<Invoice> invoices = new LinkedList<Invoice>();
@@ -23,29 +23,24 @@ public class Client implements Serializable {
         id = CLIENT_STRING + (ClientIdServer.instance()).getId();
     }
 
-    public boolean addOrder(Order order) {
-        return orders.add(order);
-    }
-    
-    public String createNewOrder(Product product, int quantity){
+    public String createNewOrder (Product product, int quantity){
     	Order order = new Order(id, product, quantity);
     	orders.add(order);
     	return order.getId();
     }
     
-    public boolean addRecord(Product product, int quantity, String orderId) {
-    	for(int i = 0; i < orders.size(); i++)
-        {
-          if (orderId.equals(orders.get(i).getId()))
-          {
+    public boolean addRecord (Product product, int quantity, String orderId) {
+    	for(int i = 0; i < orders.size(); i++) {
+          if (orderId.equals(orders.get(i).getId())) {
             Order order = orders.get(i);
             Record record = new Record(product, quantity);
             boolean success = order.addRecord(record);
-            if(success){
+            if(success) {
             	orders.set(i, order);
             	return true;
-            } else
+            } else {
             	return false;       
+            }
           }
         }
     	
@@ -60,33 +55,32 @@ public class Client implements Serializable {
     }
     
     public boolean addInvoiceEntry(String productId, int quantity, float cost, String invoiceId) {
-    	for(int i = 0; i < invoices.size(); i++)
-        {
-          if (invoiceId.equals(invoices.get(i).getId()))
-          {
+    	for(int i = 0; i < invoices.size(); i++) {
+          if (invoiceId.equals(invoices.get(i).getId())) {
             Invoice invoice = invoices.get(i);
             InvoiceEntry entry = new InvoiceEntry(productId, quantity, cost);
         	boolean success = invoice.addEntry(entry);
-            if(success){
+            if (success) {
             	invoices.set(i, invoice);
             	amountOwed += (quantity * cost);
             	return true;
-            } else
+            } else {
             	return false; 
+            }
           }
         }
     	
     	return false;
     }
     
-    public boolean createTransaction(String orderId){
+    public boolean createTransaction(String orderId) {
     	Transaction transaction = new Transaction(orderId, currentTransCost);
-    	if (transactions.add(transaction)){
+    	if (transactions.add(transaction)) {
     		currentTransCost = 0.0f;
     		return true;
-    	}    		
-    	else
+    	} else {
     		return false;
+        }
     }
     
     public void updateTransTotal(float total){
