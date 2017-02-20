@@ -19,12 +19,12 @@ public class UserInterface {
 	private static final int SHOW_SUPPLIERS = 8;
 	private static final int QUERY_PRODUCT_BY_GIVEN_SUPP = 9;
 	private static final int QUERY_SUPP_BY_GIVEN_PRODUCT = 10;
-	private static final int ACCEPT_PAYMENT = 11;
-	private static final int ACCEPT_ORDER = 12;
+	private static final int ACCEPT_ORDER = 11;
+	private static final int ACCEPT_PAYMENT = 12;
 	private static final int SHOW_UNPAID_BALANCES = 13;
-	private static final int SHOW_WAITLIST_FOR_A_PRODUCT = 14;
-	private static final int SHOW_ORDERS_FOR_A_CLIENT = 15;
-	private static final int SHOW_INVOICES_FOR_A_CLIENT = 16;
+	private static final int SHOW_ORDERS_FOR_A_CLIENT = 14;
+	private static final int SHOW_INVOICES_FOR_A_CLIENT = 15;
+	private static final int SHOW_WAITLIST_FOR_A_PRODUCT = 16;
 	private static final int SHOW_ALL_TRANSACTIONS_FOR_A_CLIENT = 17;
 	private static final int SAVE = 18;
 	private static final int RETRIEVE = 19;
@@ -121,12 +121,12 @@ public class UserInterface {
 		System.out.println(SHOW_SUPPLIERS + " to print suppliers");
 		System.out.println(QUERY_PRODUCT_BY_GIVEN_SUPP + " to query products of a given supplier");
 		System.out.println(QUERY_SUPP_BY_GIVEN_PRODUCT + " to query suppliers of a given product");
-		System.out.println(ACCEPT_PAYMENT + " to accept a payment for a client");
 		System.out.println(ACCEPT_ORDER + " to start an order");
+		System.out.println(ACCEPT_PAYMENT + " to accept a payment for a client");
 		System.out.println(SHOW_UNPAID_BALANCES + " to show all unpaid balances for clients");
-		System.out.println(SHOW_WAITLIST_FOR_A_PRODUCT + " to show a waitlist for a product");
 		System.out.println(SHOW_ORDERS_FOR_A_CLIENT + " to show orders for a client");
 		System.out.println(SHOW_INVOICES_FOR_A_CLIENT + " to show invoices for a client");
+		System.out.println(SHOW_WAITLIST_FOR_A_PRODUCT + " to show a waitlist for a product");
 		System.out.println(SHOW_ALL_TRANSACTIONS_FOR_A_CLIENT + " to show all transactions for a client");
 		System.out.println(SAVE + " to save data");
 		System.out.println(RETRIEVE + " to retrieve");
@@ -160,15 +160,15 @@ public class UserInterface {
 	public void addProduct() {
 		Product result;
 		float cost;
-		
+
 		String name = getToken("Enter product name");
 		String upc = getToken("Enter UPC");
 		int amount = getNumber("Enter inventory amount");
 		String costStr = getToken("Enter product cost");
-		
+
 		cost = round(Float.parseFloat(costStr), 2);
 		result = warehouse.addProduct(name, upc, amount, cost);
-		
+
 		if (result != null) {
 			System.out.println(result);
 		} else {
@@ -226,7 +226,7 @@ public class UserInterface {
 		String supplierID = getToken("Enter supplierID");
 		Iterator allProducts = warehouse.getSupplierProductList(supplierID);
 		if (allProducts == null) {
-			System.out.println("Supplier ID " + supplierID + " not valid");
+			System.out.println("Invalid supplierId");
 			return;
 		}
 		System.out.println("List of products for supplierID " + supplierID);
@@ -240,7 +240,7 @@ public class UserInterface {
 		String productID = getToken("Enter productID");
 		Iterator allSuppliers = warehouse.getProductSupplierList(productID);
 		if (allSuppliers == null) {
-			System.out.println("Product ID " + productID + " not valid");
+			System.out.println("Invalid productId");
 			return;
 		}
 
@@ -293,82 +293,112 @@ public class UserInterface {
 
 		System.out.println("Payment successfully made");
 	}
-	
-	public void acceptOrder(){
+
+	public void acceptOrder() {
 		String clientId;
 		String productId;
-		String orderId = "";
+		// String orderId;
 		int quantity;
 		boolean firstProduct = true, success;
-		
+
 		clientId = getToken("Enter clientId:");
-		
-		do{
+
+		do {
 			productId = getToken("Enter productId:");
 			quantity = getNumber("Enter quantity:");
-			
+
 			if (firstProduct)
-				orderId = warehouse.createOrder(clientId, productId, quantity);
+				success = warehouse.createOrder(clientId, productId, quantity);
 			else
-			    warehouse.continueOrder(clientId, productId, quantity, orderId);
-			
+				success = warehouse.continueOrder(clientId, productId, quantity);
+
+			if (success == false) {
+				System.out.println("Order error");
+				return;
+			}
+
 			String input = getToken("Would you like to add another product: yes or no");
-			
-			if (input.equals("yes")){
+
+			if (input.equals("yes")) {
 				firstProduct = false;
 				continue;
 			} else
 				break;
-			
-		}while (true);
-		
-		warehouse.createTransaction(clientId, orderId);
-		System.out.println("Your transaction is complete. OrderId: " + orderId);		
+
+		} while (true);
+
+		success = warehouse.createTransaction(clientId);
+		if (success == false) {
+			System.out.println("Error creating transaction details");
+			return;
+		}
+
+		System.out.println("Your transaction is complete. OrderId: " + warehouse.getOrderId());
 	}
 
 	public void showUnpaidBalances() {
 		Iterator unpaidBalances = warehouse.getAllUnpaidBalances();
-		
+
 		while (unpaidBalances.hasNext()) {
 			String clientBalance = (String) (unpaidBalances.next());
 			System.out.println(clientBalance.toString());
 		}
 	}
-	
+
 	public void showWaitlistForAProduct() {
 		String productId = getToken("Enter productId to show waitlist:");
 		Iterator waitlist = warehouse.getWaitlist(productId);
-		
+
+		if (waitlist == null) {
+			System.out.println("Invalid productId");
+			return;
+		}
+
 		while (waitlist.hasNext()) {
-			WaitlistEntry waitlistEntry = (WaitlistEntry) (waitlist.next());			
+			WaitlistEntry waitlistEntry = (WaitlistEntry) (waitlist.next());
 			System.out.println(waitlistEntry.toString());
 		}
 	}
-	
+
 	public void showOrdersForAClient() {
 		String clientId = getToken("Enter clientId to show their orders:");
 		Iterator orders = warehouse.getOrders(clientId);
-		
+
+		if (orders == null) {
+			System.out.println("Invalid clientId");
+			return;
+		}
+
 		while (orders.hasNext()) {
 			Order order = (Order) (orders.next());
 			System.out.println(order.toString());
 		}
 	}
-	
+
 	public void showInvoicesForAClient() {
 		String clientId = getToken("Enter clientId to show their invoices:");
 		Iterator invoices = warehouse.getInvoices(clientId);
-		
+
+		if (invoices == null) {
+			System.out.println("Invalid clientId");
+			return;
+		}
+
 		while (invoices.hasNext()) {
 			Invoice invoice = (Invoice) (invoices.next());
 			System.out.println(invoice.toString());
 		}
 	}
-	
+
 	public void showAllTransactionsForAClient() {
 		String clientId = getToken("Enter clientId to show their transactions:");
 		Iterator transactions = warehouse.getAllTransactions(clientId);
-		
+
+		if (transactions == null) {
+			System.out.println("Invalid clientId");
+			return;
+		}
+
 		while (transactions.hasNext()) {
 			Transaction transaction = (Transaction) (transactions.next());
 			System.out.println(transaction.toString());
@@ -439,23 +469,23 @@ public class UserInterface {
 			case QUERY_SUPP_BY_GIVEN_PRODUCT:
 				querySupplierOfAProduct();
 				break;
-			case ACCEPT_PAYMENT:
-				acceptPayment();
-				break;
 			case ACCEPT_ORDER:
 				acceptOrder();
 				break;
+			case ACCEPT_PAYMENT:
+				acceptPayment();
+				break;
 			case SHOW_UNPAID_BALANCES:
 				showUnpaidBalances();
-				break;
-			case SHOW_WAITLIST_FOR_A_PRODUCT:
-				showWaitlistForAProduct();
 				break;
 			case SHOW_ORDERS_FOR_A_CLIENT:
 				showOrdersForAClient();
 				break;
 			case SHOW_INVOICES_FOR_A_CLIENT:
 				showInvoicesForAClient();
+				break;
+			case SHOW_WAITLIST_FOR_A_PRODUCT:
+				showWaitlistForAProduct();
 				break;
 			case SHOW_ALL_TRANSACTIONS_FOR_A_CLIENT:
 				showAllTransactionsForAClient();
