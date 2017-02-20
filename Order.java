@@ -37,7 +37,7 @@ public class Order implements Serializable {
 			return false;
 		}
 	}
-	
+
 	public Iterator getRecords() {
 		return records.iterator();
 	}
@@ -49,7 +49,7 @@ public class Order implements Serializable {
 	public String getClientId() {
 		return clientId;
 	}
-	
+
 	public Calendar getDate() {
 		return date;
 	}
@@ -59,7 +59,12 @@ public class Order implements Serializable {
 	}
 
 	public String toString() {
-		String string = "OrderId: " + id + ", clientId: " +	clientId + "\r\n";// + ", date: " + date;
+		String string = "OrderId: " + id + ", clientId: " + clientId + "\r\n";// +
+																				// ",
+																				// date:
+																				// "
+																				// +
+																				// date;
 		string += "Records:\r\n";
 		for (Iterator iterator = records.iterator(); iterator.hasNext();) {
 			Record record = (Record) iterator.next();

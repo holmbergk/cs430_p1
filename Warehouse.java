@@ -1,6 +1,7 @@
 // Author: Kyle Holmberg
 import java.util.*;
 import java.io.*;
+
 public class Warehouse implements Serializable {
 	private static final long serialVersionUID = 1L;
 
@@ -8,6 +9,7 @@ public class Warehouse implements Serializable {
 	private ClientList clientList;
 	private SupplierList supplierList;
 	private String invoiceId; // need to add to current invoice
+	private String orderId; // need to add more products current order
 	private static Warehouse warehouse;
 
 	private Warehouse() {
@@ -53,7 +55,7 @@ public class Warehouse implements Serializable {
 		return null;
 	}
 
-	public boolean assignProduct(String supplierID, String productID){
+	public boolean assignProduct(String supplierID, String productID) {
 		boolean addProductResult;
 		boolean addSupplierResult;
 		Product product = inventory.search(productID);
@@ -69,7 +71,7 @@ public class Warehouse implements Serializable {
 		return (addProductResult && addSupplierResult);
 	}
 
-	public boolean removeProductFromSupplier(String supplierID, String productID){
+	public boolean removeProductFromSupplier(String supplierID, String productID) {
 		boolean removeProductResult;
 		boolean removeSupplierResult;
 		Product product = inventory.search(productID);
@@ -94,24 +96,8 @@ public class Warehouse implements Serializable {
 		client.deductAmountOwed(amountReceived);
 		return true;
 	}
-	
-	public String createOrder(String clientId, String productId, int quantity) {
-		String orderId;
 
-		Client client = clientList.search(clientId);
-		Product product = inventory.search(productId);
-
-		if (client == null || product == null) {
-			return "false";
-		}
-		
-		orderId = client.createNewOrder(product, quantity);		
-		processOrder(client, product, quantity, orderId, true);
-		
-		return orderId;
-	}
-	
-	public boolean continueOrder(String clientId, String productId, int quantity, String orderId) {
+	public boolean createOrder(String clientId, String productId, int quantity) {
 		boolean success;
 		Client client = clientList.search(clientId);
 		Product product = inventory.search(productId);
@@ -119,51 +105,90 @@ public class Warehouse implements Serializable {
 		if (client == null || product == null) {
 			return false;
 		}
-		
+
+		orderId = client.createNewOrder(product, quantity);
+
+		if (orderId.equals("false"))
+			return false;
+
+		success = processOrder(client, product, quantity, true);
+
+		return true;
+	}
+
+	public boolean continueOrder(String clientId, String productId, int quantity) {
+		boolean success;
+		Client client = clientList.search(clientId);
+		Product product = inventory.search(productId);
+
+		if (client == null || product == null) {
+			return false;
+		}
+
 		success = client.addRecord(product, quantity, orderId);
-		processOrder(client, product, quantity, orderId, false);
-		
+
+		if (success == false)
+			return false;
+
+		success = processOrder(client, product, quantity, false);
+
 		return success;
 	}
-	
-	private void processOrder(Client client, Product product, int quantity,
-								 String orderId, boolean firstProduct) {
+
+	public String getOrderId() {
+		return orderId;
+	}
+
+	private boolean processOrder(Client client, Product product, int quantity, boolean firstProduct) {
 		int currentInventory = product.getCurrentStock();
 		String productId = product.getId();
 		String clientId = client.getId();
 		float cost = product.getProductCost();
 		int waitlistQuantity = quantity - currentInventory;
-		
+		boolean errWaitList = true, errStock = true, errInvoice = true;
+
 		// enough in stock
 		if (quantity <= currentInventory && currentInventory > 0) {
-			if (firstProduct) { //create new invoice
+			if (firstProduct) {
+				// create new invoice
 				invoiceId = client.createNewInvoice(productId, quantity, cost);
-				client.updateTransTotal(cost * quantity);
-				product.reduceCurrentStock(quantity);
-			} else { // add invoice entry
-				client.addInvoiceEntry(productId, quantity, cost, invoiceId);
-				client.updateTransTotal(cost * quantity);
-				product.reduceCurrentStock(quantity);
-			}		
-		} else if (quantity > currentInventory && currentInventory > 0) { // have stock but not enough to fill order
-			if (firstProduct) {//create new invoice and waitlist
-				invoiceId = client.createNewInvoice(productId, currentInventory, cost);
-				product.addWaitlistEntry(clientId, orderId, waitlistQuantity);
-				client.updateTransTotal(cost * quantity);
-				product.reduceCurrentStock(currentInventory);
-			} else {// add invoice and waitlist entries
-				client.addInvoiceEntry(productId, currentInventory, cost, invoiceId);
-				product.addWaitlistEntry(clientId, orderId, waitlistQuantity);
-				client.updateTransTotal(cost * quantity);
-				product.reduceCurrentStock(currentInventory);
+				errStock = product.reduceCurrentStock(quantity);
+			} else {
+				// add invoice entry
+				errInvoice = client.addInvoiceEntry(productId, quantity, cost, invoiceId);
+				errStock = product.reduceCurrentStock(quantity);
 			}
-		} else { // nothing in stock
-			product.addWaitlistEntry(clientId, orderId, quantity);
-			client.updateTransTotal(cost * quantity);
+		} else if (quantity > currentInventory && currentInventory > 0) {
+			// have stock but not enough to fill order
+			if (firstProduct) {
+				// create new invoice and waitlist
+				invoiceId = client.createNewInvoice(productId, currentInventory, cost);
+				errWaitList = product.addWaitlistEntry(clientId, orderId, waitlistQuantity);
+				errStock = product.reduceCurrentStock(currentInventory);
+			} else {
+				// add invoice and waitlist entries
+				errInvoice = client.addInvoiceEntry(productId, currentInventory, cost, invoiceId);
+				errWaitList = product.addWaitlistEntry(clientId, orderId, waitlistQuantity);
+				errStock = product.reduceCurrentStock(currentInventory);
+			}
+		} else {
+			// nothing in stock
+			errWaitList = product.addWaitlistEntry(clientId, orderId, quantity);
 		}
+		
+		// check for errors
+		if (invoiceId.equals("false"))
+			return false;
+		
+		if (errStock && errInvoice && errWaitList) {
+			client.updateTransTotal(cost * quantity);
+			return true;
+		}
+
+		return false;
 	}
-	
-	public boolean createTransaction(String clientId, String orderId){
+
+	public boolean createTransaction(String clientId) {
 		Client client = clientList.search(clientId);
 		if (client == null) {
 			return false;
@@ -179,54 +204,53 @@ public class Warehouse implements Serializable {
 
 		return client.getAmountOwed();
 	}
-	
+
 	public Iterator getAllUnpaidBalances() {
 		List<String> unpaidBalances = new LinkedList<String>();
-		
+
 		Iterator allClients = clientList.getClients();
-		
-	    while (allClients.hasNext()) {
-	      Client client = (Client)(allClients.next());
-	      
-	      if (client.getAmountOwed() >= 0) {
-	    	  unpaidBalances.add("ClientId: " + client.getId() + ", Amount owed: "
-	    	  					+ client.getAmountOwed());
-	      }
-	    }
-	    return unpaidBalances.iterator();
+
+		while (allClients.hasNext()) {
+			Client client = (Client) (allClients.next());
+
+			if (client.getAmountOwed() >= 0) {
+				unpaidBalances.add("ClientId: " + client.getId() + ", Amount owed: " + client.getAmountOwed());
+			}
+		}
+		return unpaidBalances.iterator();
 	}
-	
+
 	public Iterator getWaitlist(String productID) {
 		Product product = inventory.search(productID);
 		if (product != null) {
-			return product.getWaitList(); 
+			return product.getWaitList();
 		} else {
 			return null;
 		}
 	}
-	
+
 	public Iterator getOrders(String clientId) {
 		Client client = clientList.search(clientId);
 		if (client != null) {
-			return client.getOrders(); 
+			return client.getOrders();
 		} else {
 			return null;
 		}
 	}
-	
+
 	public Iterator getAllTransactions(String clientId) {
 		Client client = clientList.search(clientId);
 		if (client != null) {
-			return client.getAllTransactions(); 
+			return client.getAllTransactions();
 		} else {
 			return null;
 		}
 	}
-	
+
 	public Iterator getInvoices(String clientId) {
 		Client client = clientList.search(clientId);
 		if (client != null) {
-			return client.getInvoices(); 
+			return client.getInvoices();
 		} else {
 			return null;
 		}
@@ -235,7 +259,7 @@ public class Warehouse implements Serializable {
 	public Iterator getProductSupplierList(String productID) {
 		Product product = inventory.search(productID);
 		if (product != null) {
-			return product.getSupplierList(); 
+			return product.getSupplierList();
 		} else {
 			return null;
 		}
@@ -273,10 +297,10 @@ public class Warehouse implements Serializable {
 			InvoiceIdServer.retrieve(input);
 			OrderIdServer.retrieve(input);
 			return warehouse;
-		} catch(IOException ioe) {
+		} catch (IOException ioe) {
 			ioe.printStackTrace();
 			return null;
-		} catch(ClassNotFoundException cnfe) {
+		} catch (ClassNotFoundException cnfe) {
 			cnfe.printStackTrace();
 			return null;
 		}
@@ -293,7 +317,7 @@ public class Warehouse implements Serializable {
 			output.writeObject(InvoiceIdServer.instance());
 			output.writeObject(OrderIdServer.instance());
 			return true;
-		} catch(IOException ioe) {
+		} catch (IOException ioe) {
 			ioe.printStackTrace();
 			return false;
 		}
@@ -303,7 +327,7 @@ public class Warehouse implements Serializable {
 		try {
 			output.defaultWriteObject();
 			output.writeObject(warehouse);
-		} catch(IOException ioe) {
+		} catch (IOException ioe) {
 			System.out.println(ioe);
 		}
 	}
@@ -316,9 +340,9 @@ public class Warehouse implements Serializable {
 			} else {
 				input.readObject();
 			}
-		} catch(IOException ioe) {
+		} catch (IOException ioe) {
 			ioe.printStackTrace();
-		} catch(Exception e) {
+		} catch (Exception e) {
 			e.printStackTrace();
 		}
 	}

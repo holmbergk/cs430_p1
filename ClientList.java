@@ -1,71 +1,70 @@
 // Author: Kyle Holmberg
 import java.util.*;
 import java.io.*;
+
 public class ClientList implements Serializable {
-  private static final long serialVersionUID = 1L;
-  private List<Client> clients = new LinkedList<Client>();
-  private static ClientList clientList;
+	private static final long serialVersionUID = 1L;
+	private List<Client> clients = new LinkedList<Client>();
+	private static ClientList clientList;
 
-  private ClientList() {
-  }
+	private ClientList() {
+	}
 
-  public static ClientList instance() {
-    if (clientList == null) {
-      return (clientList = new ClientList());
-    } else {
-      return clientList;
-    }
-  }
+	public static ClientList instance() {
+		if (clientList == null) {
+			return (clientList = new ClientList());
+		} else {
+			return clientList;
+		}
+	}
 
-  public boolean insertClient(Client client) {
-    clients.add(client);
-    return true;
-  }
+	public boolean insertClient(Client client) {
+		clients.add(client);
+		return true;
+	}
 
-  public Iterator getClients(){
-     return clients.iterator();
-  }
+	public Iterator getClients() {
+		return clients.iterator();
+	}
 
-  public Client search(String clientId){
-    for(int i = 0; i < clients.size(); i++)
-    {
-      if (clientId.equals(clients.get(i).getId()))
-      {
-        return clients.get(i);
-      }
-    }
-    return null;
-  }
-  
-  private void writeObject(java.io.ObjectOutputStream output) {
-    try {
-      output.defaultWriteObject();
-      output.writeObject(clientList);
-    } catch(IOException ioe) {
-      ioe.printStackTrace();
-    }
-  }
+	public Client search(String clientId) {
+		for (int i = 0; i < clients.size(); i++) {
+			if (clientId.equals(clients.get(i).getId())) {
+				return clients.get(i);
+			}
+		}
+		return null;
+	}
 
-  private void readObject(java.io.ObjectInputStream input) {
-    try {
-      if (clientList != null) {
-        return;
-      } else {
-        input.defaultReadObject();
-        if (clientList == null) {
-          clientList = (ClientList) input.readObject();
-        } else {
-          input.readObject();
-        }
-      }
-    } catch(IOException ioe) {
-      ioe.printStackTrace();
-    } catch(ClassNotFoundException cnfe) {
-      cnfe.printStackTrace();
-    }
-  }
+	private void writeObject(java.io.ObjectOutputStream output) {
+		try {
+			output.defaultWriteObject();
+			output.writeObject(clientList);
+		} catch (IOException ioe) {
+			ioe.printStackTrace();
+		}
+	}
 
-  public String toString() {
-    return clients.toString();
-  }
+	private void readObject(java.io.ObjectInputStream input) {
+		try {
+			if (clientList != null) {
+				return;
+			} else {
+				input.defaultReadObject();
+				if (clientList == null) {
+					clientList = (ClientList) input.readObject();
+				} else {
+					input.readObject();
+				}
+			}
+		} catch (IOException ioe) {
+			ioe.printStackTrace();
+		} catch (ClassNotFoundException cnfe) {
+			cnfe.printStackTrace();
+		}
+	}
+
+	public String toString() {
+		return clients.toString();
+	}
 }
