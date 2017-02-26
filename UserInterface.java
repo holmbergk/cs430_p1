@@ -1,3 +1,4 @@
+
 // Author: Jesse Babcock
 import java.util.*;
 import java.text.*;
@@ -26,9 +27,10 @@ public class UserInterface {
 	private static final int SHOW_INVOICES_FOR_A_CLIENT = 15;
 	private static final int SHOW_WAITLIST_FOR_A_PRODUCT = 16;
 	private static final int SHOW_ALL_TRANSACTIONS_FOR_A_CLIENT = 17;
-	private static final int SAVE = 18;
-	private static final int RETRIEVE = 19;
-	private static final int HELP = 20;
+	private static final int ACCEPT_SHIPMENT = 18;
+	private static final int SAVE = 19;
+	private static final int RETRIEVE = 20;
+	private static final int HELP = 21;
 
 	private UserInterface() {
 		if (yesOrNo("Look for saved data and use it?")) {
@@ -128,6 +130,7 @@ public class UserInterface {
 		System.out.println(SHOW_INVOICES_FOR_A_CLIENT + " to show invoices for a client");
 		System.out.println(SHOW_WAITLIST_FOR_A_PRODUCT + " to show a waitlist for a product");
 		System.out.println(SHOW_ALL_TRANSACTIONS_FOR_A_CLIENT + " to show all transactions for a client");
+		System.out.println(ACCEPT_SHIPMENT + " to accept shipment of a product");
 		System.out.println(SAVE + " to save data");
 		System.out.println(RETRIEVE + " to retrieve");
 		System.out.println(HELP + " for help");
@@ -179,23 +182,47 @@ public class UserInterface {
 	public void assignProductToSupplier() {
 		String productID = getToken("Enter Product ID");
 		String supplierID = getToken("Enter Supplier ID");
-		boolean result = warehouse.assignProduct(supplierID, productID);
-		if (result == false) {
-			System.out.println("Could not assign product to supplier");
-			return;
+		int result = warehouse.assignProduct(supplierID, productID);
+
+		switch (result) {
+		case Warehouse.PRODUCT_NOT_FOUND:
+			System.out.println("No such product in Warehouse");
+			break;
+		case Warehouse.SUPPLIER_NOT_FOUND:
+			System.out.println("No such supplier in Warehouse");
+			break;
+		case Warehouse.OPERATION_FAILED:
+			System.out.println("Product could not be assigned to supplier");
+			break;
+		case Warehouse.OPERATION_SUCCESS:
+			System.out.println("productID " + productID + " has been assigned to supplierID " + supplierID);
+			break;
+		default:
+			System.out.println("An error has ocurred");
 		}
-		System.out.println("productID " + productID + " has been assigned to supplierID " + supplierID);
 	}
 
 	public void removeProductFromSupplier() {
 		String productID = getToken("Enter Product ID");
 		String supplierID = getToken("Enter Supplier ID");
-		boolean result = warehouse.removeProductFromSupplier(supplierID, productID);
-		if (!result) {
-			System.out.println("Could not remove product and supplier connection");
-			return;
+		int result = warehouse.removeProductFromSupplier(supplierID, productID);
+
+		switch (result) {
+		case Warehouse.PRODUCT_NOT_FOUND:
+			System.out.println("No such product in Warehouse");
+			break;
+		case Warehouse.SUPPLIER_NOT_FOUND:
+			System.out.println("No such supplier in Warehouse");
+			break;
+		case Warehouse.OPERATION_FAILED:
+			System.out.println("Product could not be removed from supplier");
+			break;
+		case Warehouse.OPERATION_SUCCESS:
+			System.out.println("productID " + productID + " has been removed from supplierID " + supplierID);
+			break;
+		default:
+			System.out.println("An error has ocurred");
 		}
-		System.out.println("productID " + productID + " has been removed from supplierID " + supplierID);
 	}
 
 	public void showProducts() {
@@ -231,8 +258,8 @@ public class UserInterface {
 		}
 		System.out.println("List of products for supplierID " + supplierID);
 		while (allProducts.hasNext()) {
-			Product product = (Product) (allProducts.next());
-			System.out.println(product.toString());
+			String product = (String) (allProducts.next());
+			System.out.println(product);
 		}
 	}
 
@@ -246,8 +273,8 @@ public class UserInterface {
 
 		System.out.println("List of suppliers for productID " + productID);
 		while (allSuppliers.hasNext()) {
-			Supplier supplier = (Supplier) (allSuppliers.next());
-			System.out.println(supplier.toString());
+			String supplier = (String) (allSuppliers.next());
+			System.out.println(supplier);
 		}
 	}
 
@@ -258,6 +285,11 @@ public class UserInterface {
 		float amountOwed;
 
 		clientId = getToken("Enter client ID:");
+		if (warehouse.getClient(clientId) == null) {
+			System.out.println("Client does not exist");
+			return;
+		}
+
 		amountOwed = warehouse.getAmountOwed(clientId);
 
 		if (Float.compare(amountOwed, 0) == 0) {
@@ -297,24 +329,49 @@ public class UserInterface {
 	public void acceptOrder() {
 		String clientId;
 		String productId;
-		// String orderId;
 		int quantity;
 		boolean firstProduct = true, success;
+		int result;
 
 		clientId = getToken("Enter clientId:");
+		if (warehouse.getClient(clientId) == null) {
+			System.out.println("Client does not exist");
+			return;
+		}
 
 		do {
 			productId = getToken("Enter productId:");
+			if (warehouse.getProduct(productId) == null) {
+				System.out.println("Product does not exist");
+				return;
+			}
+
 			quantity = getNumber("Enter quantity:");
 
-			if (firstProduct)
-				success = warehouse.createOrder(clientId, productId, quantity);
-			else
-				success = warehouse.continueOrder(clientId, productId, quantity);
+			if (firstProduct) {
+				result = warehouse.createOrder(clientId, productId, quantity);
+			} else {
+				result = warehouse.continueOrder(clientId, productId, quantity);
+			}
 
-			if (success == false) {
-				System.out.println("Order error");
+			switch (result) {
+			case Warehouse.PRODUCT_NOT_FOUND:
+				System.out.println("No such product in Warehouse");
 				return;
+			case Warehouse.ORDER_NOT_CREATED:
+				System.out.println("Failed to create order");
+				return;
+			case Warehouse.INVOICE_NOT_ADDED:
+				System.out.println("Invoice could not be added");
+				return;
+			case Warehouse.RECORD_NOT_ADDED:
+				System.out.println("Record could not be added to order");
+				return;
+			case Warehouse.OPERATION_FAILED:
+				System.out.println("Product could not be removed from supplier");
+				return;
+			default:
+				// Operation is successful so far, continue on
 			}
 
 			String input = getToken("Would you like to add another product: yes or no");
@@ -322,8 +379,9 @@ public class UserInterface {
 			if (input.equals("yes")) {
 				firstProduct = false;
 				continue;
-			} else
+			} else {
 				break;
+			}
 
 		} while (true);
 
@@ -403,6 +461,72 @@ public class UserInterface {
 			Transaction transaction = (Transaction) (transactions.next());
 			System.out.println(transaction.toString());
 		}
+	}
+
+	public void receiveShipment() {
+		int index = 0, error = 0;
+		String waitlistEntry;
+
+		String productId = getToken("Enter Product ID:");
+
+		if (warehouse.getProduct(productId) == null) {
+			System.out.println("Product does not exist");
+			return;
+		}
+
+		int quantity = getNumber("Enter product count:");
+
+		if (quantity <= 0) {
+			System.out.println("Count has to be greater than 0");
+			return;
+		} else
+			warehouse.setCurrQuantity(quantity);
+
+		do {
+			waitlistEntry = warehouse.getWaitlistEntryInfo(productId, index);
+
+			if (waitlistEntry.equals("null")) {
+				System.out.println("No waitlist entries left for this productId. The product "
+						+ "count has been added to the current inventory.");
+				warehouse.updateCurrentStock(productId);
+				return;
+			}
+
+			System.out.println(waitlistEntry);
+			String input = getToken("Would you like to process this waitlist entry: yes or no");
+
+			if (input.equals("yes")) {
+				error = warehouse.processWaitlistEntry(productId, index);
+
+				switch (error) {
+				case Warehouse.PRODUCT_NOT_FOUND:
+					System.out.println("No such product in Warehouse");
+					return;
+				case Warehouse.WAITLIST_NOT_FOUND:
+					System.out.println("Waitlist entry does not exist");
+					return;
+				case Warehouse.INVOICE_NOT_ADDED:
+					System.out.println("Invoice could not be added");
+					return;
+				case Warehouse.REMOVE_WAITLIST_ENTRY_ERR:
+					System.out.println("Waitlist entry could not be removed");
+					return;
+				case Warehouse.UPDATE_WAITLIST_ENTRY_ERR:
+					System.out.println("Waitlist entry could not be updated");
+					return;
+				case Warehouse.END_OF_STOCK:
+					System.out.println("New shipment quantity has been exhausted");
+					return;
+				default:
+					continue;
+				}
+				// continue;
+			}
+
+			index++;
+
+		} while (true);
+
 	}
 
 	public float round(float f, int decimalPlace) {
@@ -489,6 +613,9 @@ public class UserInterface {
 				break;
 			case SHOW_ALL_TRANSACTIONS_FOR_A_CLIENT:
 				showAllTransactionsForAClient();
+				break;
+			case ACCEPT_SHIPMENT:
+				receiveShipment();
 				break;
 			case SAVE:
 				save();

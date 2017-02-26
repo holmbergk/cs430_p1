@@ -1,15 +1,30 @@
+
 // Author: Kyle Holmberg
 import java.util.*;
 import java.io.*;
 
 public class Warehouse implements Serializable {
 	private static final long serialVersionUID = 1L;
+	public static final int OPERATION_SUCCESS = 0;
+	public static final int CLIENT_NOT_FOUND = 1;
+	public static final int PRODUCT_NOT_FOUND = 2;
+	public static final int SUPPLIER_NOT_FOUND = 3;
+	public static final int OPERATION_FAILED = 4;
+	public static final int ORDER_NOT_CREATED = 5;
+	public static final int RECORD_NOT_ADDED = 6;
+	public static final int INVOICE_NOT_ADDED = 7;
+	public static final int WAITLIST_NOT_FOUND = 8;
+	public static final int WAITLIST_PARTIALLY_FILLED = 9;
+	public static final int REMOVE_WAITLIST_ENTRY_ERR = 10;
+	public static final int UPDATE_WAITLIST_ENTRY_ERR = 11;
+	public static final int END_OF_STOCK = 12;
 
 	private Inventory inventory;
 	private ClientList clientList;
 	private SupplierList supplierList;
-	private String invoiceId; // need to add to current invoice
-	private String orderId; // need to add more products current order
+	private String invoiceId; // needed to add to current invoice
+	private String orderId; // needed to add more products to current order
+	private int currQuantity; // available shipment leftover
 	private static Warehouse warehouse;
 
 	private Warehouse() {
@@ -25,6 +40,7 @@ public class Warehouse implements Serializable {
 			ProductIdServer.instance();
 			InvoiceIdServer.instance();
 			OrderIdServer.instance();
+			WaitlistEntryIdServer.instance();
 			return (warehouse = new Warehouse());
 		} else {
 			return warehouse;
@@ -55,7 +71,7 @@ public class Warehouse implements Serializable {
 		return null;
 	}
 
-	public boolean assignProduct(String supplierID, String productID) {
+	public int assignProduct(String supplierID, String productID) {
 		boolean addProductResult;
 		boolean addSupplierResult;
 		Product product = inventory.search(productID);
@@ -65,13 +81,13 @@ public class Warehouse implements Serializable {
 			addProductResult = supplier.addProduct(productID);
 			addSupplierResult = product.addSupplier(supplierID);
 		} else {
-			return false;
+			return (product == null ? PRODUCT_NOT_FOUND : SUPPLIER_NOT_FOUND);
 		}
 
-		return (addProductResult && addSupplierResult);
+		return (addProductResult && addSupplierResult ? OPERATION_SUCCESS : OPERATION_FAILED);
 	}
 
-	public boolean removeProductFromSupplier(String supplierID, String productID) {
+	public int removeProductFromSupplier(String supplierID, String productID) {
 		boolean removeProductResult;
 		boolean removeSupplierResult;
 		Product product = inventory.search(productID);
@@ -81,10 +97,20 @@ public class Warehouse implements Serializable {
 			removeProductResult = supplier.removeProduct(productID);
 			removeSupplierResult = product.removeSupplier(supplierID);
 		} else {
-			return false;
+			return (product == null ? PRODUCT_NOT_FOUND : SUPPLIER_NOT_FOUND);
 		}
 
-		return (removeProductResult && removeSupplierResult);
+		return (removeProductResult && removeSupplierResult ? OPERATION_SUCCESS : OPERATION_FAILED);
+	}
+
+	public Client getClient(String clientId) {
+		Client client = clientList.search(clientId);
+		return client;
+	}
+
+	public Product getProduct(String productId) {
+		Product product = inventory.search(productId);
+		return product;
 	}
 
 	public boolean makePayment(String clientId, float amountReceived) {
@@ -97,49 +123,52 @@ public class Warehouse implements Serializable {
 		return true;
 	}
 
-	public boolean createOrder(String clientId, String productId, int quantity) {
-		boolean success;
+	public int createOrder(String clientId, String productId, int quantity) {
+		int errCode;
 		Client client = clientList.search(clientId);
 		Product product = inventory.search(productId);
 
 		if (client == null || product == null) {
-			return false;
+			return (client == null ? CLIENT_NOT_FOUND : PRODUCT_NOT_FOUND);
 		}
 
 		orderId = client.createNewOrder(product, quantity);
 
-		if (orderId.equals("false"))
-			return false;
+		if (orderId.equals("false")) {
+			return ORDER_NOT_CREATED;
+		}
 
-		success = processOrder(client, product, quantity, true);
+		errCode = processOrder(client, product, quantity, true);
 
-		return true;
+		return errCode;
 	}
 
-	public boolean continueOrder(String clientId, String productId, int quantity) {
+	public int continueOrder(String clientId, String productId, int quantity) {
 		boolean success;
+		int errCode;
 		Client client = clientList.search(clientId);
 		Product product = inventory.search(productId);
 
 		if (client == null || product == null) {
-			return false;
+			return (client == null ? CLIENT_NOT_FOUND : PRODUCT_NOT_FOUND);
 		}
 
 		success = client.addRecord(product, quantity, orderId);
 
-		if (success == false)
-			return false;
+		if (!success) {
+			return RECORD_NOT_ADDED;
+		}
 
-		success = processOrder(client, product, quantity, false);
+		errCode = processOrder(client, product, quantity, false);
 
-		return success;
+		return errCode;
 	}
 
 	public String getOrderId() {
 		return orderId;
 	}
 
-	private boolean processOrder(Client client, Product product, int quantity, boolean firstProduct) {
+	private int processOrder(Client client, Product product, int quantity, boolean firstProduct) {
 		int currentInventory = product.getCurrentStock();
 		String productId = product.getId();
 		String clientId = client.getId();
@@ -175,17 +204,82 @@ public class Warehouse implements Serializable {
 			// nothing in stock
 			errWaitList = product.addWaitlistEntry(clientId, orderId, quantity);
 		}
-		
+
 		// check for errors
 		if (invoiceId.equals("false"))
-			return false;
-		
+			return INVOICE_NOT_ADDED;
+
 		if (errStock && errInvoice && errWaitList) {
 			client.updateTransTotal(cost * quantity);
-			return true;
+			return OPERATION_SUCCESS;
 		}
 
-		return false;
+		return OPERATION_FAILED;
+	}
+
+	public int processWaitlistEntry(String productId, int index) {
+
+		boolean errRemWaitList = true, errUpdWaitList = true;
+
+		Product product = inventory.search(productId);
+
+		if (product == null)
+			return PRODUCT_NOT_FOUND;
+
+		WaitlistEntry entry = product.getWaitlistEntry(index);
+
+		if (entry == null)
+			return WAITLIST_NOT_FOUND;
+
+		int waitlistQuantity = entry.getQuantity();
+		float cost = product.getProductCost();
+		Client client = clientList.search(entry.getClientId());
+
+		// enough in shipment
+		if (waitlistQuantity <= currQuantity && currQuantity > 0) {
+			invoiceId = client.createNewInvoice(productId, waitlistQuantity, cost);
+			if (invoiceId.equals("false"))
+				return INVOICE_NOT_ADDED;
+			currQuantity -= waitlistQuantity;
+			if (product.removeWaitlistentry(entry))
+				return OPERATION_SUCCESS;
+			else
+				return REMOVE_WAITLIST_ENTRY_ERR;
+		} else if (waitlistQuantity > currQuantity && currQuantity > 0) {
+			invoiceId = client.createNewInvoice(productId, currQuantity, cost);
+			if (invoiceId.equals("false"))
+				return INVOICE_NOT_ADDED;
+			entry.setQuantity(waitlistQuantity - currQuantity);
+			if (product.updateWaitlistEntry(entry)) {
+				currQuantity = 0;
+				return END_OF_STOCK;
+			} else
+				return UPDATE_WAITLIST_ENTRY_ERR;
+		} else
+			return END_OF_STOCK;
+	}
+
+	public void setCurrQuantity(int quantity) {
+		currQuantity = quantity;
+	}
+
+	public String getWaitlistEntryInfo(String productId, int index) {
+		Product product = inventory.search(productId);
+		WaitlistEntry entry;
+		if (product != null) {
+			entry = product.getWaitlistEntry(index);
+			if (entry != null)
+				return entry.toString();
+			else
+				return "null";
+		} else
+			return "null";
+
+	}
+
+	public void updateCurrentStock(String productId) {
+		Product product = inventory.search(productId);
+		product.addToCurrentStock(currQuantity);
 	}
 
 	public boolean createTransaction(String clientId) {
@@ -296,6 +390,7 @@ public class Warehouse implements Serializable {
 			ProductIdServer.retrieve(input);
 			InvoiceIdServer.retrieve(input);
 			OrderIdServer.retrieve(input);
+			WaitlistEntryIdServer.retrieve(input);
 			return warehouse;
 		} catch (IOException ioe) {
 			ioe.printStackTrace();
@@ -316,6 +411,7 @@ public class Warehouse implements Serializable {
 			output.writeObject(ProductIdServer.instance());
 			output.writeObject(InvoiceIdServer.instance());
 			output.writeObject(OrderIdServer.instance());
+			output.writeObject(WaitlistEntryIdServer.instance());
 			return true;
 		} catch (IOException ioe) {
 			ioe.printStackTrace();

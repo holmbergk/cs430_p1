@@ -1,3 +1,4 @@
+
 // Author: Jesse Babcock
 import java.util.*;
 import java.lang.*;
@@ -56,6 +57,17 @@ public class Product implements Serializable {
 		return false;
 	}
 
+	public boolean updateWaitlistEntry(WaitlistEntry entry) {
+		for (int i = 0; i < waitlist.size(); i++) {
+			if (entry.getId().equals(waitlist.get(i).getId())) {
+				waitlist.set(i, entry);
+				return true;
+			}
+		}
+
+		return false;
+	}
+
 	public void addToCurrentStock(int amount) {
 		currentStock += amount;
 	}
@@ -75,6 +87,13 @@ public class Product implements Serializable {
 
 	public Iterator getWaitList() {
 		return waitlist.iterator();
+	}
+
+	public WaitlistEntry getWaitlistEntry(int index) {
+		if (index >= waitlist.size())
+			return null;
+		else
+			return waitlist.get(index);
 	}
 
 	public String getUPC() {
